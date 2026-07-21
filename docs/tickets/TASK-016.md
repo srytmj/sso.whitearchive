@@ -13,7 +13,7 @@ Depends on: TASK-003
 
 - [x] `RegisterController`: ubah validasi `name` dari `required` → `nullable|string|max:255` — `app/Http/Controllers/Auth/RegisterController.php:24`
 - [x] `RegisterService`: tambah logic `filled($data['name'] ?? null) ? $data['name'] : $data['username']` — `app/Services/Auth/RegisterService.php:16`
-- [x] `resources/views/auth/register.blade.php`: label "Full Name" + `flux:badge` "opsional", placeholder "Kosongkan untuk pakai username"
+- [x] `resources/views/auth/register.blade.php`: label "Full Name" + badge `<span>` "opsional" (pure Tailwind), placeholder "Kosongkan untuk pakai username"
 - [x] Sekalian: redirect post-register ke `/account` (user) atau `/dashboard` (superadmin), konsisten dengan post-login — `RegisterController:32-35`
 
 ---

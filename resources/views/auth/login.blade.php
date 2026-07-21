@@ -5,13 +5,14 @@
 
 @section('content')
     @if($clientName)
-        <div class="flex items-start gap-3 p-4 rounded-lg bg-blue-50 border border-blue-200 text-blue-800 text-sm mb-6">
-            Anda akan masuk ke <strong class="ml-1">{{ $clientName }}</strong>. Silakan login untuk melanjutkan.
+        <div class="flex items-center gap-3 mb-6 px-3 py-2.5 rounded-lg bg-blue-50 border border-blue-100">
+            <div class="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0"></div>
+            <p class="text-sm text-blue-700">Masuk untuk melanjutkan ke <span class="font-semibold">{{ $clientName }}</span></p>
         </div>
     @else
-        <div class="flex items-start gap-3 p-4 rounded-lg bg-zinc-50 border border-zinc-200 text-zinc-700 text-sm mb-6">
-            Login ke <strong class="mx-1">SSO Engine</strong> — Identity Provider whitearchive.id.
-            Untuk masuk ke aplikasi tertentu, akses melalui aplikasi tersebut dan kamu akan diarahkan ke sini secara otomatis.
+        <div class="flex items-start gap-3 mb-6 px-3 py-2.5 rounded-lg bg-zinc-50 border border-zinc-100">
+            <div class="w-1.5 h-1.5 rounded-full bg-zinc-400 shrink-0 mt-1.5"></div>
+            <p class="text-sm text-zinc-500">Akses aplikasi whitearchive.id melalui masing-masing aplikasi — kamu akan diarahkan ke sini otomatis.</p>
         </div>
     @endif
 
