@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\OAuth\Client;
+use App\Rules\RedirectUriRule;
 use App\Services\Dashboard\ApplicationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,7 +30,7 @@ class ApplicationController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'redirect_uri' => ['required', 'url', 'max:1000'],
+            'redirect_uri' => ['required', 'string', 'max:1000', new RedirectUriRule()],
         ]);
 
         $client = $this->service->create($validated);
@@ -47,7 +48,7 @@ class ApplicationController extends Controller
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'redirect_uri' => ['required', 'url', 'max:1000'],
+            'redirect_uri' => ['required', 'string', 'max:1000', new RedirectUriRule()],
         ]);
 
         $this->service->update($application, $validated);

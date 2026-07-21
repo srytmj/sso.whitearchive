@@ -1,27 +1,47 @@
+# Laravel
 *.log
-.DS_Store
 .env
 .env.backup
 .env.production
-.phpactor.json
-.phpunit.result.cache
-/.codex
-/.cursor/
-/.idea
-/.nova
-/.phpunit.cache
-/.vscode
-/.zed
-/auth.json
+/vendor
 /node_modules
 /public/build
-/public/fonts-manifest.dev.json
 /public/hot
 /public/storage
 /storage/*.key
 /storage/pail
-/vendor
+/bootstrap/cache/*.php
+
+# Passport keys
+/storage/oauth-private.key
+/storage/oauth-public.key
+
+# Testing
+.phpunit.result.cache
+/.phpunit.cache
+
+# IDE
+/.idea
+/.vscode
+/.zed
+/.nova
+/.cursor/
+/.codex
 _ide_helper.php
+.phpactor.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
 Homestead.json
 Homestead.yaml
-Thumbs.db
+/auth.json
+/public/fonts-manifest.dev.json
+
+# Logs (project-level)
+logs/
+
+# Internal workflow (tickets untuk dev session, bukan publik)
+docs/tickets/

@@ -2,13 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
-    public function index(Request $request): View
+    public function index(Request $request): View|RedirectResponse
     {
-        return view('home', ['user' => $request->user()]);
+        if ($user = $request->user()) {
+            return redirect()->route(
+                $user->role?->slug === 'superadmin' ? 'dashboard.index' : 'account.show'
+            );
+        }
+
+        return view('home');
     }
 }

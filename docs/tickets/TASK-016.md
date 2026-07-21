@@ -1,6 +1,6 @@
 # TASK-016: Register — Full Name Opsional (Fallback ke Username)
 
-Status: In Review
+Status: Done
 Priority: Low
 Created: 2026-07-20 21:30
 Request: Ubah field "name" di form register menjadi opsional. Jika user tidak mengisi full name, sistem otomatis menggunakan username sebagai name. Perubahan kecil di validasi dan service layer.
@@ -20,7 +20,13 @@ Depends on: TASK-003
 
 ## QA Response
 
-- [ ] Register dengan full name diisi → `users.name` tersimpan sesuai input
-- [ ] Register dengan full name kosong → `users.name` tersimpan sama dengan `username`
-- [ ] Register dengan full name hanya spasi → dianggap kosong, fallback ke username
-- [ ] Validasi lain (username, email, password) tidak terpengaruh
+> **Method**: Static code review.
+
+- [x] Register dengan full name diisi → `filled($data['name'] ?? null)` true → simpan `$data['name']` ✓ (`RegisterService:16`)
+- [x] Register dengan full name kosong (`name=''`) → `filled('')` false → fallback ke `$data['username']` ✓
+- [x] Register dengan full name hanya spasi → `filled('   ')` false (Laravel `blank()` menganggap whitespace-only sebagai blank) → fallback ke username ✓
+- [x] Validasi lain tidak terpengaruh — `nullable` hanya mengubah `name`, aturan username/email/password tidak berubah ✓
+- [x] View: label "Full Name" + badge "opsional" + placeholder "Kosongkan untuk pakai username" ✓ (`register.blade.php:12-18`)
+- [x] Redirect post-register: `route('account.show')` atau `route('dashboard.index')` untuk superadmin ✓ (`RegisterController:36-40`)
+
+**Status: Done**

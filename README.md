@@ -1,58 +1,137 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SSO Engine — whitearchive.id
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Central Identity Provider untuk ekosistem whitearchive.id. User login sekali, bisa akses semua aplikasi (Malas, Scribe, dll.) tanpa login ulang.
 
-## About Laravel
+**Protokol**: OAuth2 Authorization Code + PKCE (RFC 6749 + RFC 7636)
+**URL produksi**: `https://sso.whitearchive.id`
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Stack
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- **Backend**: Laravel (latest stable) + Laravel Passport
+- **Frontend**: Blade + Alpine.js + Tailwind CSS (no SPA)
+- **Database**: MySQL — `db_sso` (read/write split)
+- **Email**: Resend
+- **Infra**: Linux VM / EC2, Cloudflare DNS + proxy
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Setup Lokal
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+**Prasyarat**: PHP 8.2+, Composer, MySQL
 
 ```bash
-composer require laravel/boost --dev
+git clone <repo-url> sso.whitearchive
+cd sso.whitearchive
 
-php artisan boost:install
+composer install
+cp .env.example .env
+php artisan key:generate
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Buat database `db_sso` di MySQL, lalu isi `.env`:
 
-## Contributing
+```env
+DB_DATABASE=db_sso
+DB_USERNAME=root
+DB_PASSWORD=
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+MAIL_MAILER=resend
+RESEND_API_KEY=re_xxx
+MAIL_FROM_ADDRESS=noreply@whitearchive.id
+MAIL_FROM_NAME="SSO whitearchive.id"
+```
 
-## Code of Conduct
+```bash
+php artisan migrate
+php artisan passport:install
+php artisan db:seed          # seed roles + superadmin
+php artisan serve
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Akses di `http://localhost:8000`.
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Deployment
 
-## License
+**First deploy** (server baru):
+```bash
+make deploy
+# atau: sudo bash scripts/deploy.sh
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**Update** (kode sudah di server):
+```bash
+make update
+# atau: bash scripts/update.sh
+```
+
+Tidak ada CI/CD — deploy manual via SSH.
+
+---
+
+## Arsitektur
+
+```
+Request → Controller (validasi) → Service/Action (logic) → Model → Response
+```
+
+- Controller: thin, hanya validasi dan delegasi
+- Service: business logic
+- Action: single-responsibility (contoh: `RevokeTokenAction`)
+- Model: relasi dan scopes saja
+
+```
+app/
+  Http/
+    Controllers/Auth/     # Login, Register, Logout, ForgotPassword, ResetPassword
+    Controllers/Api/      # UserController (GET /api/user)
+  Services/Auth/          # LoginService, RegisterService
+  Actions/Auth/           # RevokeTokenAction
+  Models/                 # User, Role
+resources/views/
+  layouts/                # public, auth, dashboard, account
+  auth/                   # login, register, forgot-password, reset-password
+docs/
+  PRD.md                  # Product requirements
+  SRS.md                  # Tech spec & API contract
+  INTEGRATION.md          # Panduan integrasi untuk developer client app
+  tickets/                # TASK-001 s/d TASK-017
+```
+
+---
+
+## Endpoints Utama
+
+| Endpoint | Keterangan |
+|----------|------------|
+| `GET /` | Landing page |
+| `GET /login` | Halaman login |
+| `GET /register` | Halaman register |
+| `GET /forgot-password` | Form lupa password |
+| `GET /oauth/authorize` | Titik masuk OAuth2 flow (Passport) |
+| `POST /oauth/token` | Tukar code/refresh token (Passport) |
+| `GET /api/user` | Profil user (butuh Bearer token + scope `profile:read`) |
+| `GET /account` | My Account (auth) |
+| `GET /dashboard` | Dashboard superadmin |
+
+---
+
+## Integrasi Client App
+
+Lihat [docs/INTEGRATION.md](docs/INTEGRATION.md) untuk panduan lengkap OAuth2 flow, contoh kode, dan checklist integrasi.
+
+---
+
+## Docs
+
+| File | Isi |
+|------|-----|
+| [docs/PRD.md](docs/PRD.md) | Product requirements & user stories |
+| [docs/SRS.md](docs/SRS.md) | Tech spec, DB schema, API contract |
+| [docs/INTEGRATION.md](docs/INTEGRATION.md) | Panduan integrasi untuk developer |
+| [docs/TODO.md](docs/TODO.md) | Backlog informal |
+| [docs/tickets/](docs/tickets/) | TASK-001 s/d TASK-017 |
+| [.claude/CLAUDE.md](.claude/CLAUDE.md) | Context untuk AI dev sessions |
