@@ -1,0 +1,62 @@
+# STRUCTURE — SSO Engine
+
+Dokumen ini mendeskripsikan struktur folder project dan konvensi penamaan.
+
+## Root
+
+```
+sso.whitearchive/
+  app/                    # Laravel application code
+  config/                 # Laravel config files
+  database/               # Migrations, seeders, factories
+  resources/views/        # Blade templates (auth + oauth)
+  routes/                 # web.php, api.php, oauth.php (Passport)
+  docs/                   # Dokumentasi project (PRD, SRS, tickets)
+  scripts/                # deploy.sh, update.sh
+  logs/                   # sync.log, deploy.log (gitignored)
+  .claude/                # Claude Code config (CLAUDE.md + agents)
+  Makefile                # Shortcut commands
+  sync.sh                 # Sync stack dari SRS ke CLAUDE.md
+  SESSION-PROMPTS.md      # Copy-paste prompts untuk tiap agent session
+```
+
+## docs/
+
+```
+docs/
+  PRD.md          # Product Requirements Document
+  SRS.md          # Software Requirements Specification
+  STRUCTURE.md    # File ini
+  TODO.md         # Backlog dan catatan informal
+  tickets/
+    TASK-XXX.md   # Feature tickets
+    bugs/
+      BUG-XXX.md  # Bug tickets
+```
+
+## .claude/
+
+```
+.claude/
+  CLAUDE.md         # Project context & constraints untuk Claude
+  settings.local.json
+  agents/
+    PM.md           # Persona & rules untuk PM session
+    DEV.md          # Persona & rules untuk DEV session
+    QA.md           # Persona & rules untuk QA session
+```
+
+## Konvensi Ticket
+
+- Feature ticket: `docs/tickets/TASK-001.md`, `TASK-002.md`, dst.
+- Bug ticket: `docs/tickets/bugs/BUG-001.md`, dst.
+- Nomor sequential, jangan reuse nomor yang sudah ada.
+
+## Konvensi File Kode
+
+- Controller: `app/Http/Controllers/{Domain}/{Name}Controller.php`
+- Service: `app/Services/{Domain}/{Name}Service.php`
+- Action: `app/Actions/{Domain}/{Name}Action.php`
+- Model: `app/Models/{Name}.php`
+- Request: `app/Http/Requests/{Name}Request.php`
+- Middleware: `app/Http/Middleware/{Name}.php`

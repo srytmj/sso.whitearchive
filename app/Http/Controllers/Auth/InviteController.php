@@ -1,0 +1,90 @@
+<?php
+
+namespace App\Http\Controllers\Auth;
+
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Models\UserInvitation;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
+
+class InviteController extends Controller
+{
+    public function show(Request $request): View|RedirectResponse
+    {
+        $invitation = $this->resolveInvitation($request->query('token', ''));
+
+        if (! $invitation) {
+            return view('auth.invite', ['error' => $this->tokenError($request->query('token', ''))]);
+        }
+
+        return view('auth.invite', ['invitation' => $invitation]);
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $invitation = $this->resolveInvitation($request->input('token', ''));
+
+        if (! $invitation) {
+            return back()->withErrors(['token' => $this->tokenError($request->input('token', ''))]);
+        }
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'username' => ['required', 'string', 'max:50', 'unique:users,username', 'regex:/^[a-z0-9_]+$/'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'username' => $validated['username'],
+            'email' => $invitation->email,
+            'password' => $validated['password'],
+            'role_id' => $invitation->role_id,
+            'is_active' => true,
+        ]);
+
+        $invitation->update(['used_at' => now()]);
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->route('account.show');
+    }
+
+    private function resolveInvitation(string $token): ?UserInvitation
+    {
+        if (empty($token)) {
+            return null;
+        }
+
+        $invitation = UserInvitation::with('role')->where('token', $token)->first();
+
+        if (! $invitation || ! $invitation->isValid()) {
+            return null;
+        }
+
+        return $invitation;
+    }
+
+    private function tokenError(string $token): string
+    {
+        if (empty($token)) {
+            return 'Link undangan tidak valid.';
+        }
+
+        $invitation = UserInvitation::where('token', $token)->first();
+
+        if (! $invitation) {
+            return 'Link undangan tidak valid.';
+        }
+
+        if ($invitation->used_at) {
+            return 'Link undangan sudah pernah digunakan.';
+        }
+
+        return 'Link undangan telah kedaluwarsa.';
+    }
+}

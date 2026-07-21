@@ -1,0 +1,64 @@
+<?php
+
+namespace App\Http\Controllers\Dashboard;
+
+use App\Actions\Dashboard\InviteUserAction;
+use App\Http\Controllers\Controller;
+use App\Models\Role;
+use App\Models\User;
+use App\Services\Dashboard\UserManagementService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class UserManagementController extends Controller
+{
+    public function __construct(
+        private readonly UserManagementService $service,
+        private readonly InviteUserAction $inviteAction,
+    ) {}
+
+    public function index(): View
+    {
+        return view('dashboard.users.index', [
+            'users' => $this->service->list(),
+            'roles' => Role::all(),
+        ]);
+    }
+
+    public function toggleActive(Request $request, User $user): RedirectResponse
+    {
+        $this->service->toggleActive($user, $request->user());
+
+        return back()->with('success', 'Status user diperbarui.');
+    }
+
+    public function assignRole(Request $request, User $user): RedirectResponse
+    {
+        $validated = $request->validate([
+            'role_id' => ['required', 'exists:roles,id'],
+        ]);
+
+        $this->service->assignRole($user, $validated['role_id']);
+
+        return back()->with('success', 'Role user diperbarui.');
+    }
+
+    public function invite(): View
+    {
+        return view('dashboard.users.invite', ['roles' => Role::all()]);
+    }
+
+    public function sendInvite(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'email' => ['required', 'email', 'unique:users,email'],
+            'role_id' => ['required', 'exists:roles,id'],
+        ]);
+
+        $this->inviteAction->execute($request->user(), $validated['email'], $validated['role_id']);
+
+        return redirect()->route('dashboard.users.index')
+            ->with('success', "Undangan dikirim ke {$validated['email']}.");
+    }
+}

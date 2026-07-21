@@ -1,0 +1,65 @@
+<?php
+
+namespace App\Http\Controllers\Dashboard;
+
+use App\Http\Controllers\Controller;
+use App\Models\OAuth\Client;
+use App\Services\Dashboard\ApplicationService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
+
+class ApplicationController extends Controller
+{
+    public function __construct(private readonly ApplicationService $service) {}
+
+    public function index(): View
+    {
+        return view('dashboard.applications.index', [
+            'clients' => $this->service->list(),
+        ]);
+    }
+
+    public function create(): View
+    {
+        return view('dashboard.applications.create');
+    }
+
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'redirect_uri' => ['required', 'url', 'max:1000'],
+        ]);
+
+        $client = $this->service->create($validated);
+
+        return redirect()->route('dashboard.applications.show', $client->id)
+            ->with('new_secret', $client->plainSecret);
+    }
+
+    public function show(Client $application): View
+    {
+        return view('dashboard.applications.show', ['client' => $application]);
+    }
+
+    public function update(Request $request, Client $application): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'redirect_uri' => ['required', 'url', 'max:1000'],
+        ]);
+
+        $this->service->update($application, $validated);
+
+        return back()->with('success', 'Application updated.');
+    }
+
+    public function destroy(Client $application): RedirectResponse
+    {
+        $this->service->delete($application);
+
+        return redirect()->route('dashboard.applications.index')
+            ->with('success', 'Application deleted and tokens revoked.');
+    }
+}
