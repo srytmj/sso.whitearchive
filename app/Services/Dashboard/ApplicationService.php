@@ -17,17 +17,16 @@ class ApplicationService
 
     public function create(array $data): Client
     {
-        return $this->clients->create(
-            userId: null,
+        return $this->clients->createAuthorizationCodeGrantClient(
             name: $data['name'],
-            redirect: $data['redirect_uri'],
+            redirectUris: [$data['redirect_uri']],
             confidential: true,
         );
     }
 
     public function update(Client $client, array $data): void
     {
-        $this->clients->update($client, $data['name'], $data['redirect_uri']);
+        $this->clients->update($client, $data['name'], [$data['redirect_uri']]);
     }
 
     public function delete(Client $client): void
