@@ -51,7 +51,7 @@ Project ini membangun Central SSO Engine (`sso.whitearchive.id`) beserta dashboa
 - **Scope-based authorization**: scope awal `profile:read`
 - **Token revocation**: logout revoke session dan semua token aktif
 
-### P1 — In Progress
+### P1 — Done ✓
 
 - **Landing page** (`/`): halaman publik yang menjelaskan SSO Engine — OAuth2 + PKCE, self-service register, ekosistem whitearchive.id. Tautan ke `/login` dan `/register`.
 - **My Account** (`/account`): halaman self-service untuk user yang sudah login
@@ -60,13 +60,14 @@ Project ini membangun Central SSO Engine (`sso.whitearchive.id`) beserta dashboa
   - Active sessions: daftar device/session aktif, tombol "Cabut" per session untuk revoke dari device asing
 - **Dashboard Superadmin** (`/dashboard`):
   - Hanya bisa diakses user dengan role `superadmin`
-  - **Applications**: list registered OAuth clients, tambah client baru, lihat `client_id` & `client_secret`, edit nama/redirect URI, revoke/hapus client
+  - **Applications**: list registered OAuth clients, tambah client baru, Quick Start panel dengan credentials siap copy, validasi redirect URI (HTTPS + blokir private IP), edit nama/redirect URI, revoke/hapus client
   - **Users**: list semua user, aktifkan/nonaktifkan akun, assign role, invite user baru via email
 - **Invite user via email**: superadmin input email → sistem kirim email berisi link satu kali pakai untuk set password dan complete profile
+- **Forgot password**: user input email → link reset via Resend, expired 60 menit, single-use
+- **Register full name opsional**: jika kosong, fallback ke username
 
 ### P2 — Should Have (Next)
 
-- **Password reset** via email
 - **Avatar upload**
 - **Audit log** login events (siapa login kapan, dari mana)
 - **Email verification** — verifikasi email setelah register

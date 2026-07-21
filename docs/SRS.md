@@ -220,7 +220,7 @@ Redirect ke `/oauth/authorize` jika ada `intended` URL tersimpan, atau ke `/` ji
 ### POST /register (Web)
 
 ```
-name: string required max:255
+name: string nullable max:255   # opsional — jika kosong, fallback ke username
 username: string required unique max:50 regex:[a-z0-9_]
 email: string required email unique
 password: string required min:8 confirmed

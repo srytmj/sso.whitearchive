@@ -24,14 +24,16 @@ sso.whitearchive/
 
 ```
 docs/
-  PRD.md          # Product Requirements Document
-  SRS.md          # Software Requirements Specification
-  STRUCTURE.md    # File ini
-  TODO.md         # Backlog dan catatan informal
-  tickets/
-    TASK-XXX.md   # Feature tickets
+  PRD.md              # Product Requirements Document
+  SRS.md              # Software Requirements Specification
+  STRUCTURE.md        # File ini
+  TODO.md             # Backlog dan catatan informal
+  INTEGRATION.md      # Panduan integrasi untuk developer client app (manual)
+  AI_INTEGRATION.md   # Brief integrasi untuk AI assistant (lempar ke Claude/Cursor)
+  tickets/            # gitignored — internal workflow
+    TASK-XXX.md       # Feature tickets
     bugs/
-      BUG-XXX.md  # Bug tickets
+      BUG-XXX.md      # Bug tickets
 ```
 
 ## .claude/
