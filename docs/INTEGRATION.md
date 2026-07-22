@@ -292,6 +292,10 @@ Arahkan unauthenticated redirect ke SSO (bukan ke `/login` lokal):
 
 ### Step 7 — Logout
 
+Logout **dua tahap** wajib dilakukan:
+1. Hapus session lokal di app kamu
+2. Redirect ke SSO logout — kalau dilewati, SSO session masih aktif dan user akan auto-login kembali tanpa diminta password
+
 ```php
 public function logout(Request $request): RedirectResponse
 {
@@ -299,11 +303,14 @@ public function logout(Request $request): RedirectResponse
     $request->session()->invalidate();
     $request->session()->regenerateToken();
 
-    // Redirect ke SSO logout agar session SSO juga dihancurkan
-    // Setelah logout SSO, user perlu login ulang di semua app ekosistem
-    return redirect(config('sso.base_url') . '/logout');
+    // Wajib: redirect ke SSO logout dengan redirect_uri agar session SSO juga hancur.
+    // Tanpa ini, klik login lagi akan auto-login tanpa minta password.
+    $redirectUri = urlencode(config('sso.redirect_uri_base', url('/')));
+    return redirect(config('sso.base_url') . '/logout?redirect_uri=' . $redirectUri);
 }
 ```
+
+> **Penting**: `redirect_uri` harus domain yang terdaftar di SSO sebagai redirect URI client app kamu. SSO hanya akan redirect ke domain yang sudah diwhitelist.
 
 ---
 

@@ -36,7 +36,7 @@ Route::middleware('guest')->group(function () {
 
 // Authenticated
 Route::middleware('auth')->group(function () {
-    Route::post('/logout', [LogoutController::class, 'destroy'])->name('logout');
+    Route::match(['get', 'post'], '/logout', [LogoutController::class, 'destroy'])->name('logout');
 
     // My Account
     Route::prefix('account')->name('account.')->group(function () {
