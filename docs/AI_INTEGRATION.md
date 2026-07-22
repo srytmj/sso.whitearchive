@@ -223,6 +223,9 @@ Refresh token berlaku **30 hari** dan single-use — selalu simpan token baru da
 
 ## Logout
 
+Logout **wajib dua tahap**: hapus session lokal, lalu redirect ke SSO logout.
+Jika tahap dua dilewati, SSO session masih aktif — klik login lagi akan auto-login tanpa minta password.
+
 ```php
 public function logout(Request $request): RedirectResponse
 {
@@ -230,9 +233,18 @@ public function logout(Request $request): RedirectResponse
     $request->session()->invalidate();
     $request->session()->regenerateToken();
 
-    // Opsional: redirect ke logout SSO agar session SSO juga dihancurkan
-    return redirect(config('sso.base_url') . '/logout');
+    // Wajib redirect ke SSO logout dengan redirect_uri supaya SSO session juga hancur.
+    // redirect_uri harus domain yang terdaftar di SSO sebagai redirect URI client ini.
+    $redirectUri = urlencode(url('/'));
+    return redirect(config('sso.base_url') . '/logout?redirect_uri=' . $redirectUri);
 }
+```
+
+Route logout di client (pastikan POST atau GET keduanya support):
+
+```php
+Route::post('/auth/logout', [SsoController::class, 'logout'])->name('sso.logout');
+Route::get('/auth/logout', [SsoController::class, 'logout']);  // untuk redirect dari SSO
 ```
 
 ---
@@ -264,6 +276,7 @@ Data di-sync setiap kali user login. Untuk update profil, user harus ke `sso.whi
 - [ ] Arahkan unauthenticated request ke `route('sso.redirect')` bukan ke `/login`
 - [ ] Test: akses halaman protected → redirect ke SSO → login → balik ke app → session aktif
 - [ ] Test: akses lagi setelah login SSO → silent (tidak perlu login ulang)
+- [ ] Test: logout → session lokal hancur + SSO session hancur → klik login lagi → muncul halaman login SSO (bukan auto-login)
 
 ---
 
@@ -276,6 +289,8 @@ Data di-sync setiap kali user login. Untuk update profil, user harus ke `sso.whi
 | 403 Invalid state | `state` di callback tidak cocok session | Jangan simpan `state` di cookie/localStorage |
 | `invalid_request` | `code_challenge` tidak ada | PKCE wajib — pastikan `redirect()` generate dan kirim `code_challenge` |
 | Token expired (401) | Access token > 60 menit | Implementasi refresh token flow |
+| Auto-login setelah logout | SSO session tidak dihancurkan | Pastikan logout redirect ke `/logout?redirect_uri=...` bukan hanya clear session lokal |
+| GET method not allowed (logout) | Client punya route logout POST-only tapi di-hit via GET redirect | Tambah `Route::get('/auth/logout', ...)` di client |
 
 ---
 
