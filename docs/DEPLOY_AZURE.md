@@ -23,7 +23,7 @@ Panduan deploy `sso.whitearchive.id` ke Azure menggunakan **Azure App Service** 
 
 1. Buka [portal.azure.com](https://portal.azure.com) → **Create a resource** → **Virtual Machine**
 2. Konfigurasi:
-   - **Image**: Ubuntu Server 24.04 LTS
+   - **Image**: Ubuntu Server 24.04 LTS — **jangan pilih 26.04**, PPA PHP belum support
    - **Size**: B1s (1 vCPU, 1GB RAM) — cukup untuk mulai
    - **Authentication**: SSH public key
    - **Inbound ports**: buka port 22 (SSH), 80 (HTTP), 443 (HTTPS)
@@ -44,11 +44,16 @@ ssh -i your-key.pem azureuser@<PUBLIC_IP>
 sudo apt update && sudo apt upgrade -y
 
 # Install PHP 8.3 + extensions
+# Ubuntu 24.04: butuh PPA ondrej untuk PHP 8.3
 sudo apt install -y software-properties-common
 sudo add-apt-repository ppa:ondrej/php -y
 sudo apt update
 sudo apt install -y php8.3 php8.3-fpm php8.3-mysql php8.3-mbstring \
-    php8.3-xml php8.3-curl php8.3-zip php8.3-bcmath php8.3-tokenizer
+    php8.3-xml php8.3-curl php8.3-zip php8.3-bcmath php8.3-cli
+
+# Jika pakai Ubuntu 26.04 (Resolute), skip PPA — gunakan PHP 8.5 dari default repo:
+# sudo apt install -y php8.5 php8.5-fpm php8.5-mysql php8.5-mbstring \
+#     php8.5-xml php8.5-curl php8.5-zip php8.5-bcmath php8.5-cli
 
 # Install Composer
 curl -sS https://getcomposer.org/installer | php
@@ -158,7 +163,7 @@ server {
     error_page 404 /index.php;
 
     location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;  # ganti ke php8.5-fpm.sock jika Ubuntu 26.04
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
         fastcgi_hide_header X-Powered-By;

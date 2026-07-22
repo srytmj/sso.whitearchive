@@ -24,7 +24,7 @@ Panduan deploy `sso.whitearchive.id` ke AWS menggunakan **EC2** (mirip VPS, pali
 1. Buka [console.aws.amazon.com](https://console.aws.amazon.com) → **EC2** → **Launch Instance**
 2. Konfigurasi:
    - **Name**: `sso-whitearchive`
-   - **AMI**: Ubuntu Server 24.04 LTS (Free Tier eligible)
+   - **AMI**: Ubuntu Server 24.04 LTS (Free Tier eligible) — **jangan pilih 26.04**, PPA PHP belum support
    - **Instance type**: `t3.micro` (2 vCPU, 1GB RAM) — cukup untuk mulai
    - **Key pair**: Create new → download `.pem` → simpan baik-baik
    - **Security Group** — buka inbound:
@@ -55,11 +55,16 @@ ssh -i your-key.pem ubuntu@<ELASTIC_IP_ATAU_PUBLIC_IP>
 sudo apt update && sudo apt upgrade -y
 
 # Install PHP 8.3 + extensions
+# Ubuntu 24.04: butuh PPA ondrej untuk PHP 8.3
 sudo apt install -y software-properties-common
 sudo add-apt-repository ppa:ondrej/php -y
 sudo apt update
 sudo apt install -y php8.3 php8.3-fpm php8.3-mysql php8.3-mbstring \
-    php8.3-xml php8.3-curl php8.3-zip php8.3-bcmath php8.3-tokenizer
+    php8.3-xml php8.3-curl php8.3-zip php8.3-bcmath php8.3-cli
+
+# Jika pakai Ubuntu 26.04 (Resolute), skip PPA — gunakan PHP 8.5 dari default repo:
+# sudo apt install -y php8.5 php8.5-fpm php8.5-mysql php8.5-mbstring \
+#     php8.5-xml php8.5-curl php8.5-zip php8.5-bcmath php8.5-cli
 
 # Install Composer
 curl -sS https://getcomposer.org/installer | php
@@ -168,7 +173,7 @@ server {
     error_page 404 /index.php;
 
     location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;  # ganti ke php8.5-fpm.sock jika Ubuntu 26.04
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
         fastcgi_hide_header X-Powered-By;
