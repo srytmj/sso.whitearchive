@@ -19,8 +19,8 @@ if [ ! -f .env ]; then
     exit 0
 fi
 
-# Migrate
-php artisan migrate --force
+# Migrate fresh (drop semua table, recreate dari awal)
+php artisan migrate:fresh --force
 
 # Install Passport
 php artisan passport:install --force
