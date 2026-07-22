@@ -43,13 +43,12 @@ ssh -i your-key.pem azureuser@<PUBLIC_IP>
 # Update system
 sudo apt update && sudo apt upgrade -y
 
-# Install PHP 8.3 + extensions
-# Ubuntu 24.04: butuh PPA ondrej untuk PHP 8.3
+# Install PHP 8.4 + extensions (wajib — symfony 8.x require PHP >=8.4.1)
 sudo apt install -y software-properties-common
 sudo add-apt-repository ppa:ondrej/php -y
 sudo apt update
-sudo apt install -y php8.3 php8.3-fpm php8.3-mysql php8.3-mbstring \
-    php8.3-xml php8.3-curl php8.3-zip php8.3-bcmath php8.3-cli
+sudo apt install -y php8.4 php8.4-fpm php8.4-mysql php8.4-mbstring \
+    php8.4-xml php8.4-curl php8.4-zip php8.4-bcmath php8.4-cli
 
 # Jika pakai Ubuntu 26.04 (Resolute), skip PPA — gunakan PHP 8.5 dari default repo:
 # sudo apt install -y php8.5 php8.5-fpm php8.5-mysql php8.5-mbstring \
@@ -107,11 +106,12 @@ Isi `.env` yang wajib diubah:
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://sso.whitearchive.id
+ASSET_URL=https://sso.whitearchive.id   # harus sama dengan APP_URL — tanpa ini CSS tidak load
 
 DB_HOST=127.0.0.1
 DB_DATABASE=db_sso
-DB_USERNAME=sso_user
-DB_PASSWORD=strong-password-here
+DB_USERNAME=root
+DB_PASSWORD=
 
 SESSION_DRIVER=database
 
@@ -163,7 +163,7 @@ server {
     error_page 404 /index.php;
 
     location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;  # ganti ke php8.5-fpm.sock jika Ubuntu 26.04
+        fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;  # ganti ke php8.5-fpm.sock jika Ubuntu 26.04
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
         fastcgi_hide_header X-Powered-By;
@@ -207,7 +207,7 @@ Di Cloudflare DNS:
 ```bash
 # Cek semua service jalan
 sudo systemctl status nginx
-sudo systemctl status php8.3-fpm
+sudo systemctl status php8.4-fpm
 sudo systemctl status mysql
 
 # Test akses
@@ -376,3 +376,7 @@ SERVER_PATH=/var/www/sso
 | Passport error | `php artisan passport:install --force` |
 | Assets tidak muncul | `npm run build` belum dijalankan |
 | Session tidak persist | Pastikan `SESSION_DRIVER=database` dan migration sessions sudah jalan |
+| CSS/JS tidak load | Pastikan `ASSET_URL` di `.env` sama dengan URL yang diakses (http vs https, domain vs IP) |
+| `composer install` gagal (PHP version) | Symfony 8.x butuh PHP >=8.4.1 — install PHP 8.4 dari ondrej PPA |
+| MySQL Access denied for root | Ubuntu pakai `auth_socket`: `sudo mysql` lalu `ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';` |
+| `config:cache` Permission denied | Jalankan sebagai www-data: `sudo -u www-data php artisan config:cache` |

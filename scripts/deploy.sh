@@ -10,30 +10,39 @@ echo "=== SSO Engine — Deploy ==="
 # Setup .env jika belum ada
 if [ ! -f .env ]; then
     cp .env.example .env
-    php artisan key:generate
-    echo "[!] .env dibuat dari .env.example. Edit konfigurasi database lalu jalankan ulang."
+    echo "[!] .env dibuat dari .env.example. Edit APP_URL, DB_*, ADMIN_EMAIL, ADMIN_PASSWORD lalu jalankan ulang."
     exit 0
 fi
 
-# Pull latest (skip jika tidak ada remote)
+# Generate APP_KEY jika kosong
+if ! grep -q "^APP_KEY=base64:" .env; then
+    php artisan key:generate
+fi
+
+# Pull latest
 git pull origin main 2>/dev/null || true
 
 # Install dependencies
 composer install --no-dev --optimize-autoloader
 
+# Fix permission storage sebelum artisan jalan
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
+
 # Migrate fresh — drop semua table dan recreate dari awal
 php artisan migrate:fresh --force
 
-# Install Passport keys + default client
-php artisan passport:install --force
+# Generate Passport encryption keys
+php artisan passport:keys --force
 
 # Seed roles + admin user
 php artisan db:seed --force
 
-# Optimize
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# Optimize — jalankan sebagai www-data agar file cache writable oleh Nginx
+sudo -u www-data php artisan config:cache
+sudo -u www-data php artisan route:cache
+sudo -u www-data php artisan view:cache
 
 echo ""
 echo "=== Deploy selesai ==="
+echo "Pastikan ASSET_URL di .env sudah sesuai dengan domain/IP yang diakses."

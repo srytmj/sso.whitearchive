@@ -24,7 +24,7 @@ Panduan deploy `sso.whitearchive.id` ke AWS menggunakan **EC2** (mirip VPS, pali
 1. Buka [console.aws.amazon.com](https://console.aws.amazon.com) → **EC2** → **Launch Instance**
 2. Konfigurasi:
    - **Name**: `sso-whitearchive`
-   - **AMI**: Ubuntu Server 24.04 LTS (Free Tier eligible) — **jangan pilih 26.04**, PPA PHP belum support
+   - **AMI**: Ubuntu Server 24.04 LTS (Free Tier eligible) — **jangan pilih 26.04**, ondrej PPA belum support
    - **Instance type**: `t3.micro` (2 vCPU, 1GB RAM) — cukup untuk mulai
    - **Key pair**: Create new → download `.pem` → simpan baik-baik
    - **Security Group** — buka inbound:
@@ -54,13 +54,12 @@ ssh -i your-key.pem ubuntu@<ELASTIC_IP_ATAU_PUBLIC_IP>
 # Update system
 sudo apt update && sudo apt upgrade -y
 
-# Install PHP 8.3 + extensions
-# Ubuntu 24.04: butuh PPA ondrej untuk PHP 8.3
+# Install PHP 8.4 + extensions (wajib — symfony 8.x require PHP >=8.4.1)
 sudo apt install -y software-properties-common
 sudo add-apt-repository ppa:ondrej/php -y
 sudo apt update
-sudo apt install -y php8.3 php8.3-fpm php8.3-mysql php8.3-mbstring \
-    php8.3-xml php8.3-curl php8.3-zip php8.3-bcmath php8.3-cli
+sudo apt install -y php8.4 php8.4-fpm php8.4-mysql php8.4-mbstring \
+    php8.4-xml php8.4-curl php8.4-zip php8.4-bcmath php8.4-cli
 
 # Jika pakai Ubuntu 26.04 (Resolute), skip PPA — gunakan PHP 8.5 dari default repo:
 # sudo apt install -y php8.5 php8.5-fpm php8.5-mysql php8.5-mbstring \
@@ -87,14 +86,19 @@ sudo apt install -y git
 
 ### 5. Setup Database
 
+MySQL di Ubuntu pakai `auth_socket` untuk root — masuk tanpa password:
+
 ```bash
-sudo mysql -u root -p
+sudo mysql
 ```
 
 ```sql
 CREATE DATABASE db_sso CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'sso_user'@'localhost' IDENTIFIED BY 'strong-password-here';
-GRANT ALL PRIVILEGES ON db_sso.* TO 'sso_user'@'localhost';
+-- Jika mau pakai user root dengan empty password (development):
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';
+-- Atau buat user baru (production):
+-- CREATE USER 'sso_user'@'localhost' IDENTIFIED BY 'strong-password';
+-- GRANT ALL PRIVILEGES ON db_sso.* TO 'sso_user'@'localhost';
 FLUSH PRIVILEGES;
 EXIT;
 ```
@@ -117,11 +121,12 @@ Isi `.env` yang wajib diubah:
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://sso.whitearchive.id
+ASSET_URL=https://sso.whitearchive.id   # harus sama dengan APP_URL — tanpa ini CSS tidak load
 
 DB_HOST=127.0.0.1
 DB_DATABASE=db_sso
-DB_USERNAME=sso_user
-DB_PASSWORD=strong-password-here
+DB_USERNAME=root
+DB_PASSWORD=
 
 SESSION_DRIVER=database
 
@@ -173,7 +178,7 @@ server {
     error_page 404 /index.php;
 
     location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;  # ganti ke php8.5-fpm.sock jika Ubuntu 26.04
+        fastcgi_pass unix:/var/run/php/php8.4-fpm.sock;  # ganti ke php8.5-fpm.sock jika Ubuntu 26.04
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
         fastcgi_hide_header X-Powered-By;
@@ -217,7 +222,7 @@ Di Cloudflare DNS:
 
 ```bash
 sudo systemctl status nginx
-sudo systemctl status php8.3-fpm
+sudo systemctl status php8.4-fpm
 sudo systemctl status mysql
 
 curl -I https://sso.whitearchive.id
@@ -399,3 +404,8 @@ Kalau mau MySQL di server terpisah (lebih production-grade dari MySQL lokal):
 | Assets 404 | `npm run build` belum dijalankan |
 | HTTPS redirect loop | Di Cloudflare SSL/TLS mode pastikan **Full (strict)**, bukan Flexible |
 | Session tidak persist | `SESSION_DRIVER=database` dan `php artisan session:table && php artisan migrate` |
+| CSS/JS tidak load | Pastikan `ASSET_URL` di `.env` sama dengan URL yang diakses (http vs https, domain vs IP) |
+| `composer install` gagal (PHP version) | Symfony 8.x butuh PHP >=8.4.1 — install PHP 8.4 dari ondrej PPA |
+| MySQL Access denied for root | Ubuntu pakai `auth_socket`: `sudo mysql` lalu `ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';` |
+| `config:cache` Permission denied | Jalankan sebagai www-data: `sudo -u www-data php artisan config:cache` |
+| Cloudflare 522 | EC2 Security Group belum allow port 80/443 inbound dari 0.0.0.0/0 |
