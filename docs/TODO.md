@@ -7,7 +7,7 @@ Catatan informal, backlog item, dan hal-hal yang perlu diputuskan. Bukan penggan
 ## Segera (Pre-Deploy)
 
 - [ ] Runtime verification lokal — test full OAuth flow via HTTP sungguhan (belum dilakukan, semua QA masih static code review)
-- [ ] Setup Resend: verifikasi domain `whitearchive.id` di Cloudflare + Resend dashboard, isi `RESEND_API_KEY` di `.env` production
+- [ ] Setup Resend: verifikasi domain `suryatmaja.dev` di Cloudflare + Resend dashboard, isi `RESEND_API_KEY` di `.env` production
 - [ ] Jalankan `php artisan migrate` di server (ada migration baru: `remove_admin_role`)
 - [ ] First deploy via `make deploy`
 

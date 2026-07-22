@@ -30,6 +30,8 @@ docs/
   TODO.md             # Backlog dan catatan informal
   INTEGRATION.md      # Panduan integrasi untuk developer client app (manual)
   AI_INTEGRATION.md   # Brief integrasi untuk AI assistant (lempar ke Claude/Cursor)
+  DEPLOY_AZURE.md     # Tutorial deploy ke Azure (VM atau App Service)
+  DEPLOY_AWS.md       # Tutorial deploy ke AWS (EC2 atau Elastic Beanstalk)
   tickets/            # gitignored — internal workflow
     TASK-XXX.md       # Feature tickets
     bugs/

@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Dashboard\ApplicationController;
 use App\Http\Controllers\Dashboard\DashboardController;
+use App\Http\Controllers\Dashboard\SessionController;
 use App\Http\Controllers\Dashboard\UserManagementController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
@@ -58,6 +59,9 @@ Route::middleware('auth')->group(function () {
             Route::patch('/{application}', [ApplicationController::class, 'update'])->name('update');
             Route::delete('/{application}', [ApplicationController::class, 'destroy'])->name('destroy');
         });
+
+        Route::get('/sessions', [SessionController::class, 'index'])->name('sessions.index');
+        Route::delete('/sessions/{id}', [SessionController::class, 'destroy'])->name('sessions.destroy');
 
         Route::prefix('users')->name('users.')->group(function () {
             Route::get('/', [UserManagementController::class, 'index'])->name('index');

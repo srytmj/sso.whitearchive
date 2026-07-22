@@ -3,7 +3,7 @@
 Central Identity Provider untuk ekosistem whitearchive.id. User login sekali, bisa akses semua aplikasi (Malas, Scribe, dll.) tanpa login ulang.
 
 **Protokol**: OAuth2 Authorization Code + PKCE (RFC 6749 + RFC 7636)
-**URL produksi**: `https://sso.whitearchive.id`
+**URL produksi**: `https://sso.suryatmaja.dev` *(sementara — akan pindah ke `sso.whitearchive.id`)*
 
 ---
 
@@ -131,7 +131,9 @@ Lihat [docs/INTEGRATION.md](docs/INTEGRATION.md) untuk panduan lengkap OAuth2 fl
 |------|-----|
 | [docs/PRD.md](docs/PRD.md) | Product requirements & user stories |
 | [docs/SRS.md](docs/SRS.md) | Tech spec, DB schema, API contract |
-| [docs/INTEGRATION.md](docs/INTEGRATION.md) | Panduan integrasi untuk developer |
+| [docs/INTEGRATION.md](docs/INTEGRATION.md) | Panduan integrasi untuk developer (manual) |
+| [docs/AI_INTEGRATION.md](docs/AI_INTEGRATION.md) | Brief integrasi untuk AI assistant |
+| [docs/DEPLOY_AZURE.md](docs/DEPLOY_AZURE.md) | Tutorial deploy ke Azure |
+| [docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md) | Tutorial deploy ke AWS |
 | [docs/TODO.md](docs/TODO.md) | Backlog informal |
-| [docs/tickets/](docs/tickets/) | TASK-001 s/d TASK-017 |
 | [.claude/CLAUDE.md](.claude/CLAUDE.md) | Context untuk AI dev sessions |
