@@ -44,7 +44,9 @@ ssh -i your-key.pem azureuser@<PUBLIC_IP>
 sudo apt update && sudo apt upgrade -y
 
 # Install PHP 8.3 + extensions
+sudo apt install -y software-properties-common
 sudo add-apt-repository ppa:ondrej/php -y
+sudo apt update
 sudo apt install -y php8.3 php8.3-fpm php8.3-mysql php8.3-mbstring \
     php8.3-xml php8.3-curl php8.3-zip php8.3-bcmath php8.3-tokenizer
 
@@ -117,7 +119,7 @@ ADMIN_PASSWORD=strong-admin-password
 ```
 
 ```bash
-# Jalankan deploy script
+# Jalankan deploy script (sama dengan make deploy)
 sudo bash scripts/deploy.sh
 
 # Build assets
@@ -298,18 +300,52 @@ php artisan config:cache && php artisan route:cache
 
 ## Update (Kedua Cara)
 
-Setelah perubahan di-push ke `main`:
+### Azure VM
+
+**Dari lokal** (tanpa perlu SSH manual — butuh `SERVER_HOST` di `.env`):
 
 ```bash
-# Di VM (Cara A):
+make remote-update
+```
+
+**Manual via SSH**:
+
+```bash
+make ssh
+# atau: ssh -i your-key.pem azureuser@<IP>
+
 cd /var/www/sso
-bash scripts/update.sh
+bash scripts/update.sh   # sama dengan: make update
 
 # Jika ada perubahan assets:
 npm run build
+sudo systemctl reload nginx
 ```
 
-Untuk App Service (Cara B): GitHub Actions otomatis deploy saat push ke `main`.
+### App Service
+
+GitHub Actions otomatis deploy saat push ke `main`.
+
+---
+
+## Make Commands (Azure VM)
+
+Tambahkan variabel berikut ke `.env` lokal untuk enable remote commands:
+
+```env
+SERVER_HOST=<public-ip-vm>
+SSH_KEY_PATH=~/.ssh/your-key.pem
+SERVER_USER=azureuser
+SERVER_PATH=/var/www/sso
+```
+
+| Command | Keterangan |
+|---------|------------|
+| `make ssh` | SSH ke server |
+| `make remote-deploy` | First-time deploy dari lokal via SSH |
+| `make remote-update` | Pull latest + rebuild dari lokal via SSH |
+| `make deploy` | First-time deploy (dijalankan **di dalam** server) |
+| `make update` | Pull latest + rebuild (dijalankan **di dalam** server) |
 
 ---
 
