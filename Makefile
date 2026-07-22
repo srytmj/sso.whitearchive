@@ -25,7 +25,7 @@ deploy:
 	sudo bash scripts/deploy.sh
 
 update:
-	bash scripts/update.sh
+	bash scripts/deploy.sh
 
 ssh:
 	@if [ -z "$(SERVER_HOST)" ]; then echo "Error: SERVER_HOST belum diset di .env"; exit 1; fi
@@ -37,4 +37,4 @@ remote-deploy:
 
 remote-update:
 	@if [ -z "$(SERVER_HOST)" ]; then echo "Error: SERVER_HOST belum diset di .env"; exit 1; fi
-	ssh -i $(SSH_KEY_PATH) $(SERVER_USER)@$(SERVER_HOST) "cd $(SERVER_PATH) && bash scripts/update.sh"
+	ssh -i $(SSH_KEY_PATH) $(SERVER_USER)@$(SERVER_HOST) "cd $(SERVER_PATH) && bash scripts/deploy.sh"
