@@ -25,10 +25,13 @@ RUN apk add --no-cache \
         libzip-dev \
         oniguruma-dev \
         libsodium-dev \
+        postgresql-dev \
         $PHPIZE_DEPS \
-    && docker-php-ext-install pdo_mysql mbstring bcmath zip intl sodium opcache \
+    && docker-php-ext-install pdo_pgsql pdo_mysql mbstring bcmath zip intl sodium opcache \
     && apk del $PHPIZE_DEPS \
     && rm -rf /var/cache/apk/*
+# pdo_mysql dipertahankan HANYA untuk `php artisan db:migrate-to-pgsql` (baca data lama
+# dari MySQL sekali saat pindah ke Postgres) — koneksi aktif aplikasi selalu pgsql.
 
 WORKDIR /var/www/html
 

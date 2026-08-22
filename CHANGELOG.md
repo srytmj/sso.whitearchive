@@ -8,6 +8,9 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Changed
+- Database engine dari MySQL ke **PostgreSQL** — semua koneksi (dev, prod, standalone) sekarang pakai `pgsql`, read/write split + sticky dipertahankan. `php artisan db:migrate-to-pgsql` disediakan untuk memindahkan seluruh data dari database MySQL lama (dibaca via koneksi `mysql`/`MYSQL_LEGACY_*`) ke Postgres sekali jalan, aman diulang (truncate tujuan dulu sebelum insert)
+
 ### Added
 - Docker Compose standalone (`docker/compose.standalone.yml`, `make docker-standalone-deploy`) — self-contained pakai Caddy, satu file untuk testing lokal (`http://localhost`) maupun deploy publik (HTTPS otomatis via Let's Encrypt tinggal ganti `CADDY_SITE_ADDRESS`), tidak butuh Traefik/infrastruktur lain
 - Admin Settings (`/dashboard/settings`) — konfigurasi mail (Resend/SMTP) dan avatar storage (local/S3) dari dashboard, bukan hardcode `.env`
@@ -18,8 +21,8 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Two-Factor Authentication / TOTP (`/account/two-factor`) — kompatibel Google Authenticator, Microsoft Authenticator, recovery codes
 - Theme toggle (system/light/dark) — persisted per user, satu klik ganti tema, no-FOUC via inline script
 - Multilanguage: Indonesia, English, 日本語 — switcher di My Account, `theme`/`locale` di-expose lewat `/api/user` untuk disinkronkan client app (opsional)
-- Docker Compose setup untuk development lokal (`make docker-fresh`) — PHP 8.4-FPM, Nginx, MySQL 8
-- Docker Compose production untuk homelab (`docker/compose.prod.yml`, `make docker-prod-deploy`) — siap Traefik reverse proxy, MySQL user dedicated, `migrate` (bukan fresh)
+- Docker Compose setup untuk development lokal (`make docker-fresh`) — PHP 8.4-FPM, Nginx, PostgreSQL 16
+- Docker Compose production untuk homelab (`docker/compose.prod.yml`, `make docker-prod-deploy`) — siap Traefik reverse proxy, Postgres dengan password wajib, `migrate` (bukan fresh)
 - Dashboard: log viewer (`/dashboard/logs`) — filter by level (custom dropdown, auto-apply), search, expand stack trace
 - Health check endpoint `/up` (built-in Laravel)
 - Rate limiting menyeluruh — `/oauth/*`, `/api/user`, semua halaman guest, dan semua route authenticated (per-user), dengan limit lebih ketat untuk aksi sensitif (ganti password, kirim invite, dst.)

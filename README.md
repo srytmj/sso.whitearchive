@@ -11,7 +11,7 @@ Central Identity Provider untuk ekosistem whitearchive.id. User login sekali, bi
 
 - **Backend**: Laravel (latest stable) + Laravel Passport
 - **Frontend**: Blade + Alpine.js + Tailwind CSS (no SPA)
-- **Database**: MySQL — `db_sso` (read/write split)
+- **Database**: PostgreSQL — `db_sso` (read/write split, sticky mode)
 - **Email**: Resend
 - **Infra**: Linux VM / EC2, Cloudflare DNS + proxy
 
@@ -19,7 +19,7 @@ Central Identity Provider untuk ekosistem whitearchive.id. User login sekali, bi
 
 ## Setup Lokal
 
-### Cara A — Docker (rekomendasi, tidak perlu install PHP/MySQL manual)
+### Cara A — Docker (rekomendasi, tidak perlu install PHP/PostgreSQL manual)
 
 ```bash
 git clone <repo-url> sso.whitearchive
@@ -31,7 +31,7 @@ Akses di `http://localhost:8000`. Detail lengkap: [docs/DOCKER.md](docs/DOCKER.m
 
 ### Cara B — Manual
 
-**Prasyarat**: PHP 8.4+, Composer, MySQL
+**Prasyarat**: PHP 8.4+, Composer, PostgreSQL
 
 ```bash
 git clone <repo-url> sso.whitearchive
@@ -42,11 +42,13 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-Buat database `db_sso` di MySQL, lalu isi `.env`:
+Buat database `db_sso` di PostgreSQL, lalu isi `.env`:
 
 ```env
+DB_CONNECTION=pgsql
+DB_PORT=5432
 DB_DATABASE=db_sso
-DB_USERNAME=root
+DB_USERNAME=postgres
 DB_PASSWORD=
 
 MAIL_MAILER=resend

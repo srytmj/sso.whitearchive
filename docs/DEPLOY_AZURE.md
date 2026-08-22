@@ -47,11 +47,11 @@ sudo apt update && sudo apt upgrade -y
 sudo apt install -y software-properties-common
 sudo add-apt-repository ppa:ondrej/php -y
 sudo apt update
-sudo apt install -y php8.4 php8.4-fpm php8.4-mysql php8.4-mbstring \
+sudo apt install -y php8.4 php8.4-fpm php8.4-pgsql php8.4-mbstring \
     php8.4-xml php8.4-curl php8.4-zip php8.4-bcmath php8.4-cli
 
 # Jika pakai Ubuntu 26.04 (Resolute), skip PPA — gunakan PHP 8.5 dari default repo:
-# sudo apt install -y php8.5 php8.5-fpm php8.5-mysql php8.5-mbstring \
+# sudo apt install -y php8.5 php8.5-fpm php8.5-pgsql php8.5-mbstring \
 #     php8.5-xml php8.5-curl php8.5-zip php8.5-bcmath php8.5-cli
 
 # Install Composer
@@ -61,9 +61,10 @@ sudo mv composer.phar /usr/local/bin/composer
 # Install Nginx
 sudo apt install -y nginx
 
-# Install MySQL
-sudo apt install -y mysql-server
-sudo mysql_secure_installation
+# Install PostgreSQL
+sudo apt install -y postgresql postgresql-contrib
+# Tidak ada mysql_secure_installation di Postgres — Ubuntu default pakai peer/md5 auth,
+# set password user postgres langsung di step "Setup Database" di bawah
 
 # Install Node (untuk Vite build)
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
@@ -76,16 +77,16 @@ sudo apt install -y git
 ### 4. Setup Database
 
 ```bash
-sudo mysql -u root -p
+sudo -u postgres psql
 ```
 
 ```sql
-CREATE DATABASE db_sso CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'sso_user'@'localhost' IDENTIFIED BY 'strong-password-here';
-GRANT ALL PRIVILEGES ON db_sso.* TO 'sso_user'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
+CREATE DATABASE db_sso;
+ALTER USER postgres WITH PASSWORD 'strong-password-here';
+\q
 ```
+
+Proyek ini pakai model satu superuser Postgres (bukan pola root + user dedicated seperti MySQL) — `.env` nanti diisi `DB_USERNAME=postgres` dan `DB_PASSWORD` sama dengan password yang di-set di atas.
 
 ### 5. Clone & Setup Project
 
@@ -109,9 +110,10 @@ APP_URL=https://sso.whitearchive.id
 ASSET_URL=https://sso.whitearchive.id   # harus sama dengan APP_URL — tanpa ini CSS tidak load
 
 DB_HOST=127.0.0.1
+DB_PORT=5432
 DB_DATABASE=db_sso
-DB_USERNAME=root
-DB_PASSWORD=
+DB_USERNAME=postgres
+DB_PASSWORD=strong-password-here
 
 SESSION_DRIVER=database
 
@@ -208,7 +210,7 @@ Di Cloudflare DNS:
 # Cek semua service jalan
 sudo systemctl status nginx
 sudo systemctl status php8.4-fpm
-sudo systemctl status mysql
+sudo systemctl status postgresql
 
 # Test akses
 curl -I https://sso.whitearchive.id
@@ -228,9 +230,9 @@ curl -I https://sso.whitearchive.id
    - **Plan**: B1 (Basic)
 3. Klik **Create**
 
-### 2. Buat Azure Database for MySQL
+### 2. Buat Azure Database for PostgreSQL
 
-1. Azure Portal → **Create a resource** → **Azure Database for MySQL**
+1. Azure Portal → **Create a resource** → **Azure Database for PostgreSQL**
 2. Pilih **Flexible Server**
 3. Catat hostname, username, password
 4. Di **Networking**: tambah firewall rule untuk App Service IP
@@ -280,9 +282,10 @@ Di Azure Portal → App Service → **Configuration** → **Application settings
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://sso.whitearchive.id
-DB_HOST=<azure-mysql-hostname>
+DB_HOST=<azure-postgres-hostname>
+DB_PORT=5432
 DB_DATABASE=db_sso
-DB_USERNAME=sso_user
+DB_USERNAME=postgres
 DB_PASSWORD=xxx
 SESSION_DRIVER=database
 RESEND_API_KEY=re_xxx
@@ -378,5 +381,5 @@ SERVER_PATH=/var/www/sso
 | Session tidak persist | Pastikan `SESSION_DRIVER=database` dan migration sessions sudah jalan |
 | CSS/JS tidak load | Pastikan `ASSET_URL` di `.env` sama dengan URL yang diakses (http vs https, domain vs IP) |
 | `composer install` gagal (PHP version) | Symfony 8.x butuh PHP >=8.4.1 — install PHP 8.4 dari ondrej PPA |
-| MySQL Access denied for root | Ubuntu pakai `auth_socket`: `sudo mysql` lalu `ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '';` |
+| `psql: FATAL: password authentication failed for user postgres` | Set/reset password via `sudo -u postgres psql` lalu `ALTER USER postgres WITH PASSWORD '...';`, dan pastikan `DB_PASSWORD` di `.env` sama |
 | `config:cache` Permission denied | Jalankan sebagai www-data: `sudo -u www-data php artisan config:cache` |

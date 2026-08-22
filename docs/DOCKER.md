@@ -4,7 +4,7 @@ Ada 3 cara jalanin SSO Engine via Docker, pilih sesuai kebutuhan:
 
 | File | Kapan dipakai |
 |---|---|
-| `docker-compose.yml` | Development lokal — hot-friendly, port di-publish langsung ke host, MySQL root tanpa password |
+| `docker-compose.yml` | Development lokal — hot-friendly, port di-publish langsung ke host, Postgres `POSTGRES_HOST_AUTH_METHOD=trust` (tanpa password, khusus lokal) |
 | `docker/compose.prod.yml` | Production di homelab yang **sudah punya** Traefik jalan (banyak project di 1 host, network `proxy` dishare) |
 | **`docker/compose.standalone.yml`** | **Universal** — satu file yang sama buat testing/pakai lokal ATAU deploy ke server publik mana pun, **tidak butuh infrastruktur lain** (pakai Caddy, self-contained, auto-HTTPS) |
 
@@ -42,7 +42,7 @@ Login superadmin pakai `ADMIN_EMAIL` / `ADMIN_PASSWORD` dari `.env` (default: `a
 | `make docker-down` | Stop semua container |
 | `make docker-build` | Rebuild image — jalankan setelah ubah `composer.json` atau `package.json` |
 | `make docker-shell` | Masuk shell container `app` (buat jalanin `artisan` manual, dll) |
-| `make docker-logs` | Tail log semua container (app, nginx, mysql) |
+| `make docker-logs` | Tail log semua container (app, nginx, postgres) |
 
 Contoh jalanin artisan command manual:
 
@@ -79,14 +79,14 @@ docker-compose.yml          # Dev — tetap di root, ikut konvensi default looku
 
 - **app** — PHP 8.4-FPM. `storage/` di-mount read-write (log, cache, session). `public/` di-mount sebagai named volume (`sso_public`) yang dishare dengan `nginx` — disinkron ulang dari isi image tiap container start via `docker/php/entrypoint.sh`, supaya asset hasil `npm run build` (yang ada di dalam image, bukan di host) bisa diakses langsung oleh Nginx.
 - **nginx** — serve `public/` dari volume `sso_public`, proxy `.php` ke `app:9000`
-- **mysql** — MySQL 8.0, root tanpa password (khusus lokal — jangan pernah begini di production), data persist di volume `sso_mysql_data`
+- **postgres** — Postgres 16 Alpine, trust auth (tanpa password, khusus lokal — jangan pernah begini di production), data persist di volume `sso_postgres_data`
 
 > Kenapa `public/` tidak di-bind-mount langsung dari host seperti `storage/`? Karena `public/build` (hasil Vite) di-`.gitignore`, jadi tidak ada di host kecuali kamu jalankan `npm run build` manual — itu justru hal yang mau dihindari dengan Docker. Named volume + sync di entrypoint memastikan Nginx dan PHP-FPM selalu lihat file yang sama persis, hasil build terbaru dari image.
 
 Port bisa diubah lewat `.env`:
 ```env
 APP_PORT=8000
-DB_PORT=3306
+DB_PORT=5432
 ```
 
 ---
@@ -173,7 +173,7 @@ Satu file ini bisa dipakai untuk dua skenario, dibedakan cuma dari satu variabel
 
 ### Setup
 
-1. Copy `.env.example` → `.env`, isi `DB_USERNAME`/`DB_PASSWORD`/`DB_ROOT_PASSWORD` (wajib, sama seperti `docker/compose.prod.yml` — tidak ada opsi password kosong)
+1. Copy `.env.example` → `.env`, isi `DB_USERNAME`/`DB_PASSWORD` (wajib, sama seperti `docker/compose.prod.yml` — tidak ada opsi password kosong)
 2. Untuk **testing lokal**: biarkan `CADDY_SITE_ADDRESS=http://localhost` (default)
 3. Untuk **deploy publik**: set `CADDY_SITE_ADDRESS=sso.namadomain.com` — pastikan DNS domain itu sudah mengarah ke IP server **sebelum** container jalan (Caddy butuh itu buat verifikasi Let's Encrypt), dan port 80+443 harus terbuka ke internet (Caddy pakai 80 untuk HTTP-01 challenge, 443 untuk trafik HTTPS)
 4. Deploy:
@@ -229,7 +229,7 @@ Jalankan skrip yang sama lagi kapan pun untuk update (otomatis pull + migrate, b
 | | Dev (`docker-compose.yml`) | Prod (`docker/compose.prod.yml`) |
 |---|---|---|
 | Port | Publish langsung ke host (`localhost:8000`) | Tidak publish port — masuk lewat reverse proxy |
-| MySQL | Root tanpa password | User dedicated + password wajib |
+| PostgreSQL | Trust auth (tanpa password) | `POSTGRES_USER`/`POSTGRES_PASSWORD` wajib diisi kuat |
 | Migration | `migrate:fresh` (boleh hilang data, dev) | `migrate` (data production tidak boleh hilang) |
 | Restart policy | Tidak diset | `unless-stopped` |
 | Network | Berdiri sendiri | Join network eksternal `proxy` (Traefik) |
@@ -257,11 +257,10 @@ Kalau kamu punya ~10 project Docker Compose di satu host Proxmox, cara paling ma
    APP_URL=https://sso.whitearchive.id
    ASSET_URL=https://sso.whitearchive.id
 
-   DB_USERNAME=sso_user
+   DB_USERNAME=postgres
    DB_PASSWORD=isi-password-kuat
-   DB_ROOT_PASSWORD=isi-password-root-terpisah
    ```
-   Beda dari dev: production **wajib** pakai user MySQL dedicated (bukan root) dan password yang kuat — `docker/compose.prod.yml` sudah di-set untuk require ini.
+   Beda dari dev: production **wajib** isi `DB_USERNAME`/`DB_PASSWORD` dengan password asli (tidak boleh kosong) — keduanya langsung jadi kredensial superuser Postgres yang dipakai app buat autentikasi. Tidak ada pemisahan root/user seperti MySQL, karena image resmi Postgres cuma punya satu superuser yang dibuat dari `POSTGRES_USER`/`POSTGRES_PASSWORD`. `docker/compose.prod.yml` sudah di-set untuk require ini.
 
 3. **Sesuaikan domain** di `docker/compose.prod.yml`, ganti bagian label Traefik:
    ```yaml
@@ -297,9 +296,26 @@ Pull kode terbaru, rebuild image, `migrate --force` (bukan fresh — data aman),
 ### Kalau Punya 10 Project di Host yang Sama
 
 - Tiap project punya `docker/compose.prod.yml` sendiri dengan `name:` unik di baris pertama (supaya nama volume/network tidak tabrakan) — SSO Engine ini sudah pakai `name: sso-whitearchive`.
-- Semua join network `proxy` yang **sama** (satu Traefik untuk semua), tapi masing-masing punya network internal sendiri (`whitearchive_sso_prod` di sini) untuk komunikasi app↔nginx↔mysql yang terisolasi dari project lain.
-- MySQL tiap project idealnya **container terpisah** (seperti setup ini) kecuali kamu sengaja mau satu MySQL server dishare banyak project — kalau begitu, ubah `DB_HOST` ke hostname MySQL bersama dan hapus service `mysql` dari compose file ini.
-- Backup: volume `sso_mysql_data` dan `sso_storage` yang perlu di-backup rutin (bukan `sso_public`, itu regenerable dari image).
+- Semua join network `proxy` yang **sama** (satu Traefik untuk semua), tapi masing-masing punya network internal sendiri (`whitearchive_sso_prod` di sini) untuk komunikasi app↔nginx↔postgres yang terisolasi dari project lain.
+- Postgres tiap project idealnya **container terpisah** (seperti setup ini) kecuali kamu sengaja mau satu Postgres server dishare banyak project — kalau begitu, ubah `DB_HOST` ke hostname Postgres bersama dan hapus service `postgres` dari compose file ini.
+- Backup: volume `sso_postgres_data` dan `sso_storage` yang perlu di-backup rutin (bukan `sso_public`, itu regenerable dari image).
+
+---
+
+## Migrasi Data dari MySQL Lama (Upgrade Deployment)
+
+Kalau kamu upgrade deployment lama yang masih pakai MySQL ke versi ini (Postgres), tersedia command sekali-jalan buat mindahin semua data:
+
+```bash
+php artisan db:migrate-to-pgsql
+```
+
+Command ini baca koneksi MySQL lama dari env `MYSQL_LEGACY_HOST`/`MYSQL_LEGACY_PORT`/`MYSQL_LEGACY_DATABASE`/`MYSQL_LEGACY_USERNAME`/`MYSQL_LEGACY_PASSWORD` (lihat `.env.example`), lalu **TRUNCATE** dulu tabel-tabel tujuan di Postgres sebelum copy data — aman dijalankan berkali-kali, tapi destruktif terhadap data yang sudah ada di Postgres saat ini.
+
+- `php artisan db:migrate-to-pgsql` — interaktif, minta konfirmasi dulu
+- `php artisan db:migrate-to-pgsql --force` — skip konfirmasi (cocok buat scripted upgrade flow)
+
+Hanya relevan untuk deployment lama era-MySQL yang sedang di-upgrade. Instalasi baru bisa abaikan ini dan biarkan `MYSQL_LEGACY_*` kosong.
 
 ---
 
@@ -309,12 +325,12 @@ Pull kode terbaru, rebuild image, `migrate --force` (bukan fresh — data aman),
 |---------|--------|
 | `docker compose up` gagal, port sudah dipakai | Ganti `APP_PORT` / `DB_PORT` di `.env`, atau stop service lokal yang pakai port sama |
 | CSS/JS tidak muncul | Assets di-build saat `docker build` (stage Node) — kalau ganti file di `resources/`, jalankan `make docker-build` ulang |
-| `Connection refused` ke MySQL | Container `mysql` belum ready — `docker-compose.yml` sudah pakai `healthcheck` + `depends_on: condition: service_healthy`, tapi kalau masih gagal cek `docker compose logs mysql` |
+| `Connection refused` ke Postgres | Container `postgres` belum ready — `docker-compose.yml` sudah pakai `healthcheck` + `depends_on: condition: service_healthy`, tapi kalau masih gagal cek `docker compose logs postgres` |
 | Perubahan kode PHP tidak kerasa | Hanya `storage/` yang di-mount volume; kalau ubah file di `app/`, `routes/`, dll. perlu `make docker-build` ulang (karena kode di-copy saat build, bukan mount) |
 | `host.docker.internal` tidak resolve (Linux) | Tambah `extra_hosts: ["host.docker.internal:host-gateway"]` di compose file |
 | `docker-prod-deploy` gagal: network `proxy` tidak ada | `docker network create proxy` dulu, atau sesuaikan nama network di `docker/compose.prod.yml` dengan Traefik yang sudah ada |
 | Traefik tidak detect container | Cek label `traefik.enable=true` ada, container join network yang sama dengan Traefik, dan Traefik punya akses ke Docker socket (`/var/run/docker.sock`) |
-| MySQL production gagal start | `MYSQL_USER`/`MYSQL_PASSWORD` butuh `DB_USERNAME`/`DB_PASSWORD` terisi di `.env` — MySQL tidak mau start dengan root password kosong tanpa `MYSQL_ALLOW_EMPTY_PASSWORD` (sengaja tidak dipakai di prod) |
+| Postgres production gagal start | `POSTGRES_USER`/`POSTGRES_PASSWORD` diisi dari `DB_USERNAME`/`DB_PASSWORD` — kalau kosong, container `postgres` bisa gagal start atau fallback ke default yang tidak aman. Pastikan keduanya terisi di `.env` production |
 | Error terkait `ext-sodium` / JWT saat `composer install` di dalam container | Image lama belum punya ekstensi `sodium` — jalankan ulang dengan `--build` supaya image di-rebuild dari `docker/php/Dockerfile` yang sudah include `libsodium-dev` + `docker-php-ext-install sodium` |
 | Caddy gagal provision HTTPS (`docker-standalone`) | Pastikan DNS domain di `CADDY_SITE_ADDRESS` sudah mengarah ke IP server **sebelum** container start, dan port 80+443 terbuka ke internet (bukan cuma di firewall lokal — cek juga security group/NSG kalau di cloud) |
 | `docker-standalone` gak bisa diakses sama sekali walau container "Up" | Cek jangan taruh port di `CADDY_SITE_ADDRESS` (mis. `http://localhost:8080`) kalau `HTTP_PORT` sudah diganti dari default — itu bikin Caddy listen di port yang disebutkan DI DALAM alamat itu (jadi 8080 di dalam container), padahal Docker cuma mapping `HTTP_PORT:80`. `CADDY_SITE_ADDRESS` biarkan tanpa port, atur port host lewat `HTTP_PORT`/`HTTPS_PORT` saja |

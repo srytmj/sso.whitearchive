@@ -33,11 +33,11 @@ services:
       # Project ini pakai read/write split (lihat config/database.php) — DB_HOST saja
       # tidak cukup, DB_READ_HOST/DB_WRITE_HOST eksplisit di .env akan menang atas
       # fallback ke DB_HOST kalau tidak di-override juga di sini.
-      DB_HOST: mysql
-      DB_READ_HOST: mysql
-      DB_WRITE_HOST: mysql
+      DB_HOST: postgres
+      DB_READ_HOST: postgres
+      DB_WRITE_HOST: postgres
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
     networks:
       - sso
@@ -60,18 +60,20 @@ services:
     networks:
       - sso
 
-  mysql:
-    image: mysql:8.0
+  postgres:
+    image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MYSQL_DATABASE: db_sso
-      MYSQL_USER: ${DB_USERNAME}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
+      # Beda dari MySQL: image Postgres resmi tidak punya konsep root+user terpisah,
+      # cuma 1 superuser yang dibuat dari POSTGRES_USER/POSTGRES_PASSWORD — jadi ini
+      # HARUS sama persis dengan DB_USERNAME/DB_PASSWORD yang dipakai aplikasi.
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: db_sso
     volumes:
-      - sso_mysql_data:/var/lib/mysql
+      - sso_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD", "pg_isready", "-U", "${DB_USERNAME}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -79,7 +81,7 @@ services:
       - sso
 
 volumes:
-  sso_mysql_data:
+  sso_postgres_data:
   sso_storage:
   sso_public:
   caddy_data:

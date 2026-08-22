@@ -32,7 +32,7 @@ root/
 - Backend: Laravel (latest stable)
 - Auth: Laravel Passport (OAuth2 server)
 - Frontend: Blade + Alpine.js + Tailwind CSS
-- Database: MySQL — `db_sso` (read/write split, sticky mode)
+- Database: PostgreSQL — `db_sso` (read/write split, sticky mode)
 - Email: Resend (transactional email) — `composer require resend/resend-laravel`
 - Hosting: Linux VM / EC2
 - Tunnel: Cloudflare (DNS + proxy)

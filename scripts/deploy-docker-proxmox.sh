@@ -43,18 +43,18 @@ if [ ! -f .env ]; then
     echo "[!] .env dibuat dari .env.example. Wajib diisi sebelum lanjut, minimal:"
     echo "    - CADDY_SITE_ADDRESS   domain publik tanpa skema (mis. sso.namadomain.com),"
     echo "                           atau biarkan http://localhost untuk sekadar testing"
-    echo "    - DB_USERNAME, DB_PASSWORD, DB_ROOT_PASSWORD  (WAJIB diisi, tidak boleh kosong"
-    echo "                           untuk deploy Docker — beda dari setup lokal biasa)"
+    echo "    - DB_USERNAME, DB_PASSWORD  (WAJIB diisi, tidak boleh kosong untuk deploy"
+    echo "                           Docker — dipakai langsung sebagai superuser Postgres)"
     echo "    - ADMIN_EMAIL, ADMIN_PASSWORD"
     echo ""
     echo "Jalankan lagi skrip ini setelah .env diisi."
     exit 0
 fi
 
-if ! grep -qE "^DB_PASSWORD=.+" .env || ! grep -qE "^DB_ROOT_PASSWORD=.+" .env; then
-    echo "[!] DB_PASSWORD dan/atau DB_ROOT_PASSWORD masih kosong di .env."
+if ! grep -qE "^DB_PASSWORD=.+" .env; then
+    echo "[!] DB_PASSWORD masih kosong di .env."
     echo "    Deploy Docker (standalone/production) tidak mengizinkan password kosong —"
-    echo "    beda dari setup lokal biasa yang boleh pakai root tanpa password."
+    echo "    beda dari setup lokal biasa yang boleh pakai user tanpa password."
     exit 1
 fi
 

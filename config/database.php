@@ -17,7 +17,7 @@ return [
     |
     */
 
-    'default' => env('DB_CONNECTION', 'mysql'),
+    'default' => env('DB_CONNECTION', 'pgsql'),
 
     /*
     |--------------------------------------------------------------------------
@@ -44,32 +44,6 @@ return [
             'transaction_mode' => 'DEFERRED',
         ],
 
-        'mysql' => [
-            'driver' => 'mysql',
-            'read' => [
-                'host' => [env('DB_READ_HOST', env('DB_HOST', '127.0.0.1'))],
-            ],
-            'write' => [
-                'host' => [env('DB_WRITE_HOST', env('DB_HOST', '127.0.0.1'))],
-            ],
-            'sticky' => true,
-            'url' => env('DB_URL'),
-            'port' => env('DB_PORT', '3306'),
-            'database' => env('DB_DATABASE', 'db_sso'),
-            'username' => env('DB_USERNAME', 'root'),
-            'password' => env('DB_PASSWORD', ''),
-            'unix_socket' => env('DB_SOCKET', ''),
-            'charset' => env('DB_CHARSET', 'utf8mb4'),
-            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
-            'prefix' => '',
-            'prefix_indexes' => true,
-            'strict' => true,
-            'engine' => null,
-            'options' => extension_loaded('pdo_mysql') ? array_filter([
-                Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-            ]) : [],
-        ],
-
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
@@ -92,17 +66,42 @@ return [
 
         'pgsql' => [
             'driver' => 'pgsql',
+            'read' => [
+                'host' => [env('DB_READ_HOST', env('DB_HOST', '127.0.0.1'))],
+            ],
+            'write' => [
+                'host' => [env('DB_WRITE_HOST', env('DB_HOST', '127.0.0.1'))],
+            ],
+            'sticky' => true,
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
             'port' => env('DB_PORT', '5432'),
-            'database' => env('DB_DATABASE', 'laravel'),
-            'username' => env('DB_USERNAME', 'root'),
+            'database' => env('DB_DATABASE', 'db_sso'),
+            'username' => env('DB_USERNAME', 'postgres'),
             'password' => env('DB_PASSWORD', ''),
             'charset' => env('DB_CHARSET', 'utf8'),
             'prefix' => '',
             'prefix_indexes' => true,
             'search_path' => 'public',
             'sslmode' => env('DB_SSLMODE', 'prefer'),
+        ],
+
+        // Dipertahankan khusus untuk migrasi data satu kali dari MySQL lama ke Postgres
+        // (lihat `php artisan db:migrate-to-pgsql`) — bukan connection aktif aplikasi.
+        'mysql' => [
+            'driver' => 'mysql',
+            'url' => env('MYSQL_LEGACY_URL'),
+            'host' => env('MYSQL_LEGACY_HOST', '127.0.0.1'),
+            'port' => env('MYSQL_LEGACY_PORT', '3306'),
+            'database' => env('MYSQL_LEGACY_DATABASE', 'db_sso'),
+            'username' => env('MYSQL_LEGACY_USERNAME', 'root'),
+            'password' => env('MYSQL_LEGACY_PASSWORD', ''),
+            'unix_socket' => env('MYSQL_LEGACY_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
         ],
 
         'sqlsrv' => [

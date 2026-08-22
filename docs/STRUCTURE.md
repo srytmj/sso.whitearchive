@@ -19,7 +19,7 @@ sso.whitearchive/
     caddy/                # Caddyfile (dipakai compose.standalone.yml)
     compose.prod.yml      # Docker Compose production (homelab/Proxmox + Traefik)
     compose.standalone.yml # Docker Compose universal (Caddy, self-contained, lokal ATAU publik)
-  docker-compose.yml      # Docker Compose dev: app, nginx, mysql (tetap di root — default lookup Docker Compose)
+  docker-compose.yml      # Docker Compose dev: app, nginx, postgres (tetap di root — default lookup Docker Compose)
   logs/                   # sync.log, deploy.log (gitignored)
   .claude/                # Claude Code config (CLAUDE.md + agents)
   Makefile                # Shortcut commands

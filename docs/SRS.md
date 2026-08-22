@@ -7,7 +7,7 @@
 | Backend | Laravel (latest stable) |
 | Auth | Laravel Passport (OAuth2 server) |
 | Frontend | Blade + Alpine.js + Tailwind CSS |
-| Database | MySQL — `db_sso` (read/write split, sticky mode) |
+| Database | PostgreSQL — `db_sso` (read/write split, sticky mode) |
 | Hosting | Linux VM / EC2 |
 | Email | Resend (transactional email) |
 | Tunnel | Cloudflare (DNS + proxy) |
