@@ -9,6 +9,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Docker Compose standalone (`docker-compose.standalone.yml`, `make docker-standalone-deploy`) — self-contained pakai Caddy, satu file untuk testing lokal (`http://localhost`) maupun deploy publik (HTTPS otomatis via Let's Encrypt tinggal ganti `CADDY_SITE_ADDRESS`), tidak butuh Traefik/infrastruktur lain
 - Admin Settings (`/dashboard/settings`) — konfigurasi mail (Resend/SMTP) dan avatar storage (local/S3) dari dashboard, bukan hardcode `.env`
 - Email verification wajib sebelum akses `/account`, `/dashboard`, atau OAuth flow
 - Avatar upload (`/account`) — ke disk local atau S3 sesuai Settings
@@ -35,6 +36,11 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - Ganti password sekarang otomatis revoke semua OAuth token aktif user (semua client app di-logout)
 - Logout SSO support `redirect_uri` — client app bisa redirect balik setelah logout (whitelisted ke domain terdaftar)
+
+### Fixed
+- Image Docker (`docker/php/Dockerfile`) tidak punya ekstensi `sodium` yang dibutuhkan Passport (via `lcobucci/jwt`) — bikin `composer install` gagal di dalam container. Ditambahkan `libsodium-dev` + `docker-php-ext-install sodium`
+- `home.blade.php` (landing page publik) tidak punya dark mode maupun multilanguage sama sekali padahal halaman ini genuinely dirender — sudah dikonversi penuh
+- Beberapa icon dropdown kekurangan varian `dark:` dan dua icon checklist pakai `stroke-width` yang tidak konsisten (2 vs 1.5 di tempat lain)
 
 ### Removed
 - `resources/views/flux/` — komponen Flux UI yang tidak pernah dipakai (dilarang di `.claude/CLAUDE.md`), beserta dependency `livewire/flux`

@@ -1,6 +1,14 @@
 # Docker — SSO Engine
 
-Menjalankan SSO Engine via Docker untuk development lokal — tanpa install PHP/MySQL/Nginx manual di device kamu.
+Ada 3 cara jalanin SSO Engine via Docker, pilih sesuai kebutuhan:
+
+| File | Kapan dipakai |
+|---|---|
+| `docker-compose.yml` | Development lokal — hot-friendly, port di-publish langsung ke host, MySQL root tanpa password |
+| `docker-compose.prod.yml` | Production di homelab yang **sudah punya** Traefik jalan (banyak project di 1 host, network `proxy` dishare) |
+| **`docker-compose.standalone.yml`** | **Universal** — satu file yang sama buat testing/pakai lokal ATAU deploy ke server publik mana pun, **tidak butuh infrastruktur lain** (pakai Caddy, self-contained, auto-HTTPS) |
+
+Section ini fokus ke `docker-compose.yml` (dev). Untuk `docker-compose.standalone.yml`, lihat section ["Standalone: Universal"](#standalone-universal--testing-lokal-atau-deploy-publik) di bawah. Untuk `docker-compose.prod.yml`, lihat ["Production: Homelab"](#production-homelab-proxmox--banyak-project-di-1-host).
 
 ---
 
@@ -138,6 +146,61 @@ $profile = Http::withToken($token)->get(config('sso.internal_url') . '/api/user'
 
 ---
 
+## Standalone: Universal (Testing Lokal ATAU Deploy Publik)
+
+`docker-compose.standalone.yml` beda dari dua file lain — **tidak ada infrastruktur yang harus disiapkan lebih dulu** (bukan Traefik seperti `docker-compose.prod.yml`, bukan juga sekadar dev seperti `docker-compose.yml`). Pakai [Caddy](https://caddyserver.com) sebagai reverse proxy, yang punya satu sifat penting: **HTTPS otomatis** — tinggal kasih domain asli, Caddy langsung provision sertifikat Let's Encrypt sendiri tanpa certbot, tanpa konfigurasi manual.
+
+Satu file ini bisa dipakai untuk dua skenario, dibedakan cuma dari satu variabel di `.env`:
+
+| Skenario | `.env` |
+|---|---|
+| Testing / pakai lokal | `CADDY_SITE_ADDRESS=http://localhost` (default — HTTP polos, tidak ada percobaan HTTPS) |
+| Deploy ke server publik | `CADDY_SITE_ADDRESS=sso.namadomain.com` (tanpa skema — Caddy otomatis pakai HTTPS + Let's Encrypt) |
+
+### Kenapa ini beda dari `docker-compose.prod.yml`
+
+`docker-compose.prod.yml` mengasumsikan kamu sudah punya Traefik jalan (cocok untuk homelab dengan banyak project). `docker-compose.standalone.yml` sebaliknya — **berdiri sendiri**, tidak butuh network eksternal, tidak butuh reverse proxy lain sudah terpasang. Cocok untuk:
+- Testing cepat sebelum commit ke setup homelab yang lebih besar
+- Deploy ke VPS tunggal (DigitalOcean, Linode, EC2 standalone, dll.) yang cuma menjalankan SSO Engine ini saja
+- Demo atau staging environment yang perlu HTTPS instan tanpa ribet
+
+### Setup
+
+1. Copy `.env.example` → `.env`, isi `DB_USERNAME`/`DB_PASSWORD`/`DB_ROOT_PASSWORD` (wajib, sama seperti `docker-compose.prod.yml` — tidak ada opsi password kosong)
+2. Untuk **testing lokal**: biarkan `CADDY_SITE_ADDRESS=http://localhost` (default)
+3. Untuk **deploy publik**: set `CADDY_SITE_ADDRESS=sso.namadomain.com` — pastikan DNS domain itu sudah mengarah ke IP server **sebelum** container jalan (Caddy butuh itu buat verifikasi Let's Encrypt), dan port 80+443 harus terbuka ke internet (Caddy pakai 80 untuk HTTP-01 challenge, 443 untuk trafik HTTPS)
+4. Deploy:
+   ```bash
+   make docker-standalone-deploy
+   ```
+5. Akses sesuai `CADDY_SITE_ADDRESS` — `http://localhost` untuk lokal, `https://sso.namadomain.com` untuk publik (otomatis HTTPS, tidak perlu langkah tambahan)
+
+### Update
+
+```bash
+make docker-standalone-update
+```
+
+### Command
+
+| Command | Keterangan |
+|---------|------------|
+| `make docker-standalone-deploy` | First-time deploy: build + up + migrate + seed |
+| `make docker-standalone-update` | Update: pull + rebuild + migrate (data aman) |
+| `make docker-standalone-down` | Stop semua container |
+| `make docker-standalone-logs` | Tail log semua container (termasuk Caddy) |
+| `make docker-standalone-shell` | Masuk shell container `app` |
+
+### Kalau sebelumnya kena error saat coba Docker
+
+Kalau kamu pernah coba jalanin SSO ini via Docker sebelumnya dan error — kemungkinan besar penyebabnya ekstensi PHP `sodium` yang belum ada di image (dibutuhkan Passport untuk JWT, lewat `lcobucci/jwt`). Ini sudah diperbaiki di `docker/php/Dockerfile` (ditambahkan `libsodium-dev` + `docker-php-ext-install sodium`) — kalau masih pakai image lama, jalankan ulang dengan `--build` supaya image di-rebuild dari awal:
+
+```bash
+docker compose -f docker-compose.standalone.yml up -d --build
+```
+
+---
+
 ## Production: Homelab (Proxmox + Banyak Project di 1 Host)
 
 `docker-compose.prod.yml` dipisah dari `docker-compose.yml` (dev) — bedanya:
@@ -231,6 +294,8 @@ Pull kode terbaru, rebuild image, `migrate --force` (bukan fresh — data aman),
 | `docker-prod-deploy` gagal: network `proxy` tidak ada | `docker network create proxy` dulu, atau sesuaikan nama network di `docker-compose.prod.yml` dengan Traefik yang sudah ada |
 | Traefik tidak detect container | Cek label `traefik.enable=true` ada, container join network yang sama dengan Traefik, dan Traefik punya akses ke Docker socket (`/var/run/docker.sock`) |
 | MySQL production gagal start | `MYSQL_USER`/`MYSQL_PASSWORD` butuh `DB_USERNAME`/`DB_PASSWORD` terisi di `.env` — MySQL tidak mau start dengan root password kosong tanpa `MYSQL_ALLOW_EMPTY_PASSWORD` (sengaja tidak dipakai di prod) |
+| Error terkait `ext-sodium` / JWT saat `composer install` di dalam container | Image lama belum punya ekstensi `sodium` — jalankan ulang dengan `--build` supaya image di-rebuild dari `docker/php/Dockerfile` yang sudah include `libsodium-dev` + `docker-php-ext-install sodium` |
+| Caddy gagal provision HTTPS (`docker-standalone`) | Pastikan DNS domain di `CADDY_SITE_ADDRESS` sudah mengarah ke IP server **sebelum** container start, dan port 80+443 terbuka ke internet (bukan cuma di firewall lokal — cek juga security group/NSG kalau di cloud) |
 
 ---
 
@@ -238,4 +303,5 @@ Pull kode terbaru, rebuild image, `migrate --force` (bukan fresh — data aman),
 
 - Setup manual tanpa Docker (2 app di 1 device pakai `php artisan serve`): lihat section "Testing Lokal" di [`INTEGRATION.md`](INTEGRATION.md)
 - Deploy production non-Docker (EC2/VM manual via SSH): [`DEPLOY_AWS.md`](DEPLOY_AWS.md), [`DEPLOY_AZURE.md`](DEPLOY_AZURE.md)
-- Deploy production Docker (homelab/Proxmox + Traefik): section "Production: Homelab" di atas
+- Deploy production Docker, homelab/Proxmox dengan Traefik yang sudah ada: section "Production: Homelab" di atas
+- Deploy production Docker, universal/standalone (VPS tunggal, tanpa Traefik, HTTPS otomatis): section "Standalone: Universal" di atas

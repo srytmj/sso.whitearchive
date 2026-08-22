@@ -16,6 +16,7 @@ sso.whitearchive/
   docker/                 # Dockerfile + nginx config + entrypoint.sh
   docker-compose.yml      # Docker Compose dev: app, nginx, mysql
   docker-compose.prod.yml # Docker Compose production (homelab/Proxmox + Traefik)
+  docker-compose.standalone.yml # Docker Compose universal (Caddy, self-contained, lokal ATAU publik)
   logs/                   # sync.log, deploy.log (gitignored)
   .claude/                # Claude Code config (CLAUDE.md + agents)
   Makefile                # Shortcut commands

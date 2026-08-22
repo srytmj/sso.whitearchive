@@ -24,8 +24,9 @@ RUN apk add --no-cache \
         icu-dev \
         libzip-dev \
         oniguruma-dev \
+        libsodium-dev \
         $PHPIZE_DEPS \
-    && docker-php-ext-install pdo_mysql mbstring bcmath zip intl opcache \
+    && docker-php-ext-install pdo_mysql mbstring bcmath zip intl sodium opcache \
     && apk del $PHPIZE_DEPS \
     && rm -rf /var/cache/apk/*
 

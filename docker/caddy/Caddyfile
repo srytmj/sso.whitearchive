@@ -1,0 +1,12 @@
+{$CADDY_SITE_ADDRESS:http://localhost} {
+    root * /var/www/html/public
+    encode gzip
+
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+    }
+
+    php_fastcgi app:9000
+    file_server
+}

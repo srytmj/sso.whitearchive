@@ -1,4 +1,4 @@
-.PHONY: help sync deploy update ssh remote-deploy remote-update docker-up docker-down docker-build docker-fresh docker-shell docker-logs docker-prod-deploy docker-prod-update docker-prod-down docker-prod-logs docker-prod-shell
+.PHONY: help sync deploy update ssh remote-deploy remote-update docker-up docker-down docker-build docker-fresh docker-shell docker-logs docker-prod-deploy docker-prod-update docker-prod-down docker-prod-logs docker-prod-shell docker-standalone-deploy docker-standalone-update docker-standalone-down docker-standalone-logs docker-standalone-shell
 
 # Load SSH config dari .env jika ada
 -include .env
@@ -32,6 +32,13 @@ help:
 	@echo "  make docker-prod-down    Stop container production"
 	@echo "  make docker-prod-logs    Tail log container production"
 	@echo "  make docker-prod-shell   Masuk shell container app production"
+	@echo ""
+	@echo "  -- Docker Standalone (universal — testing lokal ATAU deploy publik, tanpa Traefik) --"
+	@echo "  make docker-standalone-deploy  First-time deploy: build + up + migrate + seed"
+	@echo "  make docker-standalone-update  Update: pull + rebuild + migrate (data aman)"
+	@echo "  make docker-standalone-down    Stop container"
+	@echo "  make docker-standalone-logs    Tail log semua container (termasuk Caddy)"
+	@echo "  make docker-standalone-shell   Masuk shell container app"
 
 sync:
 	bash sync.sh
@@ -107,3 +114,32 @@ docker-prod-logs:
 
 docker-prod-shell:
 	docker compose -f docker-compose.prod.yml exec app sh
+
+docker-standalone-deploy:
+	@if [ ! -f .env ]; then cp .env.example .env; echo "[!] .env dibuat dari .env.example. Edit CADDY_SITE_ADDRESS, DB_*, ADMIN_EMAIL/PASSWORD lalu jalankan ulang."; exit 0; fi
+	docker compose -f docker-compose.standalone.yml up -d --build
+	docker compose -f docker-compose.standalone.yml exec app php artisan key:generate
+	docker compose -f docker-compose.standalone.yml exec app php artisan migrate --force
+	docker compose -f docker-compose.standalone.yml exec app php artisan passport:keys --force
+	docker compose -f docker-compose.standalone.yml exec app php artisan db:seed --force
+	docker compose -f docker-compose.standalone.yml exec app php artisan config:cache
+	docker compose -f docker-compose.standalone.yml exec app php artisan route:cache
+	docker compose -f docker-compose.standalone.yml exec app php artisan view:cache
+	@echo "Selesai. Akses sesuai CADDY_SITE_ADDRESS di .env (default: http://localhost)."
+
+docker-standalone-update:
+	git pull origin main
+	docker compose -f docker-compose.standalone.yml up -d --build
+	docker compose -f docker-compose.standalone.yml exec app php artisan migrate --force
+	docker compose -f docker-compose.standalone.yml exec app php artisan config:cache
+	docker compose -f docker-compose.standalone.yml exec app php artisan route:cache
+	docker compose -f docker-compose.standalone.yml exec app php artisan view:cache
+
+docker-standalone-down:
+	docker compose -f docker-compose.standalone.yml down
+
+docker-standalone-logs:
+	docker compose -f docker-compose.standalone.yml logs -f
+
+docker-standalone-shell:
+	docker compose -f docker-compose.standalone.yml exec app sh
