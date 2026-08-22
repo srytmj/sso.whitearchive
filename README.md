@@ -68,6 +68,20 @@ Akses di `http://localhost:8000`.
 
 ## Deployment
 
+Ada **5 cara** deploy SSO Engine ke production — pilih sesuai infrastruktur yang kamu punya. Tiap panduan sudah termasuk cara deploy-nya *dan* checklist "cara pakai" setelah jalan (login superadmin, verifikasi setup, dst.).
+
+| # | Cara | Kapan dipakai | Panduan |
+|---|------|----------------|---------|
+| 1 | **Docker Standalone** | VPS tunggal, demo, staging — self-contained (Caddy), HTTPS otomatis, gak butuh infra lain sama sekali | [docs/DOCKER.md](docs/DOCKER.md) → section "Standalone: Universal" |
+| 2 | **Docker Homelab (Traefik)** | Homelab/Proxmox dengan banyak project, Traefik sudah jalan duluan | [docs/DOCKER.md](docs/DOCKER.md) → section "Production: Homelab" |
+| 3 | **Manual SSH — AWS EC2** | VM/EC2 tanpa Docker, mau kontrol penuh di level OS | [docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md) |
+| 4 | **Manual SSH — Azure VM** | VM Azure tanpa Docker | [docs/DEPLOY_AZURE.md](docs/DEPLOY_AZURE.md) |
+| 5 | **Manual SSH — generic** | Server Linux mana pun, pakai `scripts/deploy.sh` langsung | lihat di bawah |
+
+Cara #1 dan #2 pakai `docker-compose.standalone.yml` / `docker-compose.prod.yml` — keduanya beda dari `docker-compose.yml` yang dipakai buat [Setup Lokal](#setup-lokal) di atas (itu murni buat development, bukan production).
+
+### Cara #5 — Manual SSH generic
+
 **First deploy** (server baru):
 ```bash
 make deploy
@@ -77,10 +91,28 @@ make deploy
 **Update** (kode sudah di server):
 ```bash
 make update
-# atau: bash scripts/update.sh
+# atau: bash scripts/deploy.sh
 ```
 
-Tidak ada CI/CD — deploy manual via SSH.
+Bisa juga dari lokal tanpa SSH manual — isi `SERVER_HOST` di `.env`, lalu:
+```bash
+make remote-deploy   # first deploy
+make remote-update   # update
+```
+
+Tidak ada CI/CD di cara mana pun — semua deploy dipicu manual.
+
+---
+
+## Setelah Deploy — Mulai Pakai
+
+1. **Login sebagai superadmin** — pakai `ADMIN_EMAIL`/`ADMIN_PASSWORD` dari `.env` (ganti default-nya kalau belum). Halaman login otomatis diarahkan ke `/dashboard` untuk superadmin, `/account` untuk user biasa.
+2. **(Opsional) Aktifkan Two-Factor Authentication** di `/account/two-factor` — scan QR pakai Google/Microsoft Authenticator, simpan recovery codes-nya.
+3. **Cek `/dashboard/settings`** — pastikan konfigurasi Mail (Resend/SMTP) dan Avatar Storage (local/S3) sesuai, lalu coba "Send Test Email" buat mastiin email jalan.
+4. **Daftarkan aplikasi client pertama** di `/dashboard/applications` → Add Application → isi nama + Redirect URI. Setelah dibuat, muncul Quick Start panel berisi credentials (Client ID, Secret, contoh `.env` snippet) — **simpan sekarang, secret cuma tampil sekali**.
+5. **Integrasikan ke aplikasi client** — ikuti [docs/INTEGRATION.md](docs/INTEGRATION.md) (panduan manual step-by-step) atau lempar [docs/AI_INTEGRATION.md](docs/AI_INTEGRATION.md) ke AI assistant di project client app buat auto-generate kodenya.
+6. **Undang user lain** lewat `/dashboard/users` → Invite User (khusus superadmin), atau biarkan user daftar sendiri via `/register` (wajib verifikasi email dulu sebelum bisa akses app).
+7. **Pantau aktivitas** — `/dashboard/audit-log` buat event keamanan (login, ganti password, dst.), `/dashboard/logs` buat log aplikasi/error mentah, `/dashboard/sessions` buat lihat semua session aktif lintas user.
 
 ---
 
@@ -123,11 +155,19 @@ docs/
 | `GET /login` | Halaman login |
 | `GET /register` | Halaman register |
 | `GET /forgot-password` | Form lupa password |
+| `GET /email/verify` | Halaman verifikasi email (wajib sebelum akses account/dashboard) |
+| `GET /two-factor-challenge` | Input kode TOTP saat login (kalau 2FA aktif) |
 | `GET /oauth/authorize` | Titik masuk OAuth2 flow (Passport) |
 | `POST /oauth/token` | Tukar code/refresh token (Passport) |
 | `GET /api/user` | Profil user (butuh Bearer token + scope `profile:read`) |
 | `GET /account` | My Account (auth) |
+| `GET /account/sessions` | Active sessions + My Devices |
+| `GET /account/two-factor` | Setup/disable 2FA |
 | `GET /dashboard` | Dashboard superadmin |
+| `GET /dashboard/settings` | Konfigurasi Mail & Avatar Storage (superadmin) |
+| `GET /dashboard/audit-log` | Log event keamanan & perubahan data (superadmin) |
+| `GET /dashboard/logs` | Log aplikasi/error mentah (superadmin) |
+| `GET /up` | Health check |
 
 ---
 
@@ -145,8 +185,8 @@ Lihat [docs/INTEGRATION.md](docs/INTEGRATION.md) untuk panduan lengkap OAuth2 fl
 | [docs/SRS.md](docs/SRS.md) | Tech spec, DB schema, API contract |
 | [docs/INTEGRATION.md](docs/INTEGRATION.md) | Panduan integrasi untuk developer (manual) |
 | [docs/AI_INTEGRATION.md](docs/AI_INTEGRATION.md) | Brief integrasi untuk AI assistant |
-| [docs/DEPLOY_AZURE.md](docs/DEPLOY_AZURE.md) | Tutorial deploy ke Azure |
-| [docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md) | Tutorial deploy ke AWS |
-| [docs/DOCKER.md](docs/DOCKER.md) | Jalanin via Docker untuk development lokal |
+| [docs/DEPLOY_AZURE.md](docs/DEPLOY_AZURE.md) | Deploy manual ke Azure VM (tanpa Docker) |
+| [docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md) | Deploy manual ke AWS EC2 (tanpa Docker) |
+| [docs/DOCKER.md](docs/DOCKER.md) | Docker — dev lokal, standalone (universal, HTTPS otomatis), dan homelab/Traefik |
 | [docs/TODO.md](docs/TODO.md) | Backlog informal |
 | [.claude/CLAUDE.md](.claude/CLAUDE.md) | Context untuk AI dev sessions |
