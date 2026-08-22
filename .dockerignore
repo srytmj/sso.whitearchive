@@ -2,6 +2,7 @@
 .gitignore
 node_modules
 vendor
+bootstrap/cache/*.php
 storage/logs/*.log
 storage/framework/cache/*
 storage/framework/sessions/*
@@ -13,3 +14,5 @@ logs
 .env
 .env.example
 docker-compose.yml
+docker/compose.prod.yml
+docker/compose.standalone.yml

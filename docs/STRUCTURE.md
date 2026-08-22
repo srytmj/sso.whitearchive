@@ -12,11 +12,14 @@ sso.whitearchive/
   resources/views/        # Blade templates (auth + oauth)
   routes/                 # web.php, api.php, oauth.php (Passport)
   docs/                   # Dokumentasi project (PRD, SRS, tickets)
-  scripts/                # deploy.sh, update.sh
-  docker/                 # Dockerfile + nginx config + entrypoint.sh
-  docker-compose.yml      # Docker Compose dev: app, nginx, mysql
-  docker-compose.prod.yml # Docker Compose production (homelab/Proxmox + Traefik)
-  docker-compose.standalone.yml # Docker Compose universal (Caddy, self-contained, lokal ATAU publik)
+  scripts/                # deploy.sh, deploy-docker-proxmox.sh
+  docker/                 # Dockerfile, entrypoint.sh, config nginx/caddy, compose production
+    php/                  # Dockerfile + entrypoint.sh
+    nginx/                # default.conf (dipakai compose.prod.yml)
+    caddy/                # Caddyfile (dipakai compose.standalone.yml)
+    compose.prod.yml      # Docker Compose production (homelab/Proxmox + Traefik)
+    compose.standalone.yml # Docker Compose universal (Caddy, self-contained, lokal ATAU publik)
+  docker-compose.yml      # Docker Compose dev: app, nginx, mysql (tetap di root — default lookup Docker Compose)
   logs/                   # sync.log, deploy.log (gitignored)
   .claude/                # Claude Code config (CLAUDE.md + agents)
   Makefile                # Shortcut commands

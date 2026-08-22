@@ -34,6 +34,10 @@ WORKDIR /var/www/html
 
 COPY . .
 COPY --from=vendor /app/vendor ./vendor
+# bootstrap/cache/*.php dari host bisa berisi daftar package versi dev (mis. laravel/pail)
+# yang tidak ikut ter-install di vendor --no-dev di atas — pakai yang di-regenerate ulang
+# oleh `composer dump-autoload` di stage vendor supaya konsisten dengan isi vendor/ final.
+COPY --from=vendor /app/bootstrap/cache ./bootstrap/cache
 COPY --from=assets /app/public/build ./public/build
 
 # public/ di-mount sebagai named volume saat runtime (dishare dengan container nginx —

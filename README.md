@@ -72,13 +72,13 @@ Ada **5 cara** deploy SSO Engine ke production — pilih sesuai infrastruktur ya
 
 | # | Cara | Kapan dipakai | Panduan |
 |---|------|----------------|---------|
-| 1 | **Docker Standalone** | VPS tunggal, demo, staging — self-contained (Caddy), HTTPS otomatis, gak butuh infra lain sama sekali | [docs/DOCKER.md](docs/DOCKER.md) → section "Standalone: Universal" |
+| 1 | **Docker Standalone** | VPS tunggal, demo, staging, atau VM/LXC Proxmox baru — self-contained (Caddy), HTTPS otomatis, gak butuh infra lain sama sekali | [docs/DOCKER.md](docs/DOCKER.md) → section "Standalone: Universal" (Proxmox: `bash scripts/deploy-docker-proxmox.sh`) |
 | 2 | **Docker Homelab (Traefik)** | Homelab/Proxmox dengan banyak project, Traefik sudah jalan duluan | [docs/DOCKER.md](docs/DOCKER.md) → section "Production: Homelab" |
 | 3 | **Manual SSH — AWS EC2** | VM/EC2 tanpa Docker, mau kontrol penuh di level OS | [docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md) |
 | 4 | **Manual SSH — Azure VM** | VM Azure tanpa Docker | [docs/DEPLOY_AZURE.md](docs/DEPLOY_AZURE.md) |
 | 5 | **Manual SSH — generic** | Server Linux mana pun, pakai `scripts/deploy.sh` langsung | lihat di bawah |
 
-Cara #1 dan #2 pakai `docker-compose.standalone.yml` / `docker-compose.prod.yml` — keduanya beda dari `docker-compose.yml` yang dipakai buat [Setup Lokal](#setup-lokal) di atas (itu murni buat development, bukan production).
+Cara #1 dan #2 pakai `docker/compose.standalone.yml` / `docker/compose.prod.yml` — keduanya beda dari `docker-compose.yml` yang dipakai buat [Setup Lokal](#setup-lokal) di atas (itu murni buat development, bukan production).
 
 ### Cara #5 — Manual SSH generic
 

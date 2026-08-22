@@ -7,7 +7,9 @@ name: sso-whitearchive
 #   - restart: unless-stopped + healthcheck
 #   - migrate (bukan migrate:fresh) saat update — data tidak boleh hilang
 #
-# Pakai: docker compose -f docker-compose.prod.yml up -d --build
+# Pakai: make docker-prod-deploy (atau manual: docker compose -f docker/compose.prod.yml
+# --project-directory . up -d --build — flag --project-directory WAJIB supaya semua path
+# relatif di file ini tetap resolve ke root repo, bukan ke folder docker/)
 
 services:
   app:
@@ -18,9 +20,15 @@ services:
     volumes:
       - sso_storage:/var/www/html/storage
       - sso_public:/var/www/html/public
+      - ./.env:/var/www/html/.env
     env_file: .env
     environment:
+      # Project ini pakai read/write split (lihat config/database.php) — DB_HOST saja
+      # tidak cukup, DB_READ_HOST/DB_WRITE_HOST eksplisit di .env akan menang atas
+      # fallback ke DB_HOST kalau tidak di-override juga di sini.
       DB_HOST: mysql
+      DB_READ_HOST: mysql
+      DB_WRITE_HOST: mysql
     depends_on:
       mysql:
         condition: service_healthy
