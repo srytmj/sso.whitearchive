@@ -34,6 +34,8 @@
             <div class="max-w-sm">
                 <p class="text-sm font-medium text-zinc-900 dark:text-zinc-100 mb-1">{{ __('two_factor.setup_heading') }}</p>
                 <p class="text-xs text-zinc-500 dark:text-zinc-400 mb-4">{{ __('two_factor.setup_instruction') }}</p>
+                {{-- bg-white sengaja fixed (bukan dark:bg-...) — QR code butuh kontras hitam-di-atas-putih
+                     yang konsisten supaya kamera authenticator app bisa scan dengan andal --}}
                 <div class="bg-white p-4 rounded-lg border border-zinc-200 dark:border-zinc-800 inline-block mb-3">
                     {!! $qrCodeSvg !!}
                 </div>

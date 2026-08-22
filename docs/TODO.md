@@ -6,12 +6,14 @@ Catatan informal, backlog item, dan hal-hal yang perlu diputuskan. Bukan penggan
 
 ## Segera (Pre-Deploy)
 
-- [ ] **WAJIB**: `composer update` sekali secara lokal untuk regenerate `composer.lock` — `composer.json` baru saja ditambah `league/flysystem-aws-s3-v3`, `pragmarx/google2fa-laravel`, `bacon/bacon-qr-code` dan menghapus `livewire/flux`, tapi lock file belum di-regenerate (tidak ada PHP/Composer di environment saat perubahan ini dibuat). `composer install` akan GAGAL sampai ini dijalankan dan `composer.lock` yang baru di-commit.
-- [ ] Runtime verification lokal — test full OAuth flow via HTTP sungguhan (belum dilakukan, semua QA masih static code review)
-- [ ] Runtime verification untuk fitur baru: email verification, avatar upload (local + S3), 2FA (enable/disable/login challenge/recovery code), My Devices, Settings (mail + avatar storage), Audit Log — semua ini juga masih static review, belum pernah dites jalan sungguhan
-- [ ] Setup Resend: verifikasi domain `suryatmaja.dev` di Cloudflare + Resend dashboard, isi `RESEND_API_KEY` di `.env` production (atau lewat dashboard Settings sekarang — lihat catatan di bawah)
-- [ ] Jalankan `php artisan migrate` di server (ada migration baru: `remove_admin_role`)
-- [ ] First deploy via `make deploy`
+- [x] `composer update` dijalankan, `composer.lock` sudah sinkron — google2fa-laravel diganti `pragmarx/google2fa` (framework-agnostic) karena wrapper Laravel-nya belum support versi Laravel project ini
+- [x] Migration lokal jalan bersih (`settings`, `audit_logs`, avatar/2FA columns, theme/locale, backfill verifikasi user lama)
+- [x] Smoke test dasar lokal — 66 route ke-load tanpa error, halaman publik (`/`, `/login`, `/register`, `/forgot-password`, `/reset-password`, `/register/invite`, `/two-factor-challenge`, `/up`) semua respons benar setelah `view:clear` (sempat 500 karena stale compiled view cache dari sebelum Flux dihapus — bukan bug kode, sudah beres)
+- [ ] **Runtime verification interaktif** (butuh browser, belum bisa dites via curl): register → verifikasi email → aktifkan 2FA (scan QR) → login pakai kode TOTP; upload avatar; `/dashboard/settings`; `/dashboard/audit-log`
+- [ ] Runtime verification full OAuth flow lintas app via HTTP sungguhan (belum dilakukan)
+- [ ] SMTP dan S3 di Settings belum pernah dites kirim/upload sungguhan (butuh kredensial asli)
+- [ ] Setup Resend: verifikasi domain `suryatmaja.dev` di Cloudflare + Resend dashboard, isi `RESEND_API_KEY` di `.env` production (atau lewat dashboard Settings sekarang)
+- [ ] Migrate + first deploy ke **server production** (baru dites di lokal, belum di server)
 
 ## Setelah Deploy
 

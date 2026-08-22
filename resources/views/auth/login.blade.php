@@ -6,12 +6,12 @@
 @section('content')
     @if($clientName)
         <div class="flex items-center gap-3 mb-6 px-3 py-2.5 rounded-lg bg-blue-50 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900">
-            <div class="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0"></div>
+            <div class="w-1.5 h-1.5 rounded-full bg-blue-400 dark:bg-blue-500 shrink-0"></div>
             <p class="text-sm text-blue-700 dark:text-blue-300">{{ __('auth.login_intent_app', ['app' => $clientName]) }}</p>
         </div>
     @else
         <div class="flex items-start gap-3 mb-6 px-3 py-2.5 rounded-lg bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-100 dark:border-zinc-800">
-            <div class="w-1.5 h-1.5 rounded-full bg-zinc-400 shrink-0 mt-1.5"></div>
+            <div class="w-1.5 h-1.5 rounded-full bg-zinc-400 dark:bg-zinc-600 shrink-0 mt-1.5"></div>
             <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ __('auth.login_intent_default') }}</p>
         </div>
     @endif

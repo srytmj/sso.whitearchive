@@ -53,7 +53,7 @@
                                     <button type="button" @click="open = !open"
                                             class="w-full flex items-center justify-between gap-1 px-2 py-1 text-xs border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-200 hover:border-zinc-400 dark:hover:border-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 dark:focus:ring-zinc-100/10 transition-shadow">
                                         <span x-text="current.label"></span>
-                                        <svg class="w-3.5 h-3.5 text-zinc-400 shrink-0 transition-transform duration-150" :class="open ? 'rotate-180' : ''"
+                                        <svg class="w-3.5 h-3.5 text-zinc-400 dark:text-zinc-500 shrink-0 transition-transform duration-150" :class="open ? 'rotate-180' : ''"
                                              fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
                                         </svg>
