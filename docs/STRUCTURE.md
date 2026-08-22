@@ -13,6 +13,9 @@ sso.whitearchive/
   routes/                 # web.php, api.php, oauth.php (Passport)
   docs/                   # Dokumentasi project (PRD, SRS, tickets)
   scripts/                # deploy.sh, update.sh
+  docker/                 # Dockerfile + nginx config + entrypoint.sh
+  docker-compose.yml      # Docker Compose dev: app, nginx, mysql
+  docker-compose.prod.yml # Docker Compose production (homelab/Proxmox + Traefik)
   logs/                   # sync.log, deploy.log (gitignored)
   .claude/                # Claude Code config (CLAUDE.md + agents)
   Makefile                # Shortcut commands
@@ -32,6 +35,7 @@ docs/
   AI_INTEGRATION.md   # Brief integrasi untuk AI assistant (lempar ke Claude/Cursor)
   DEPLOY_AZURE.md     # Tutorial deploy ke Azure (VM atau App Service)
   DEPLOY_AWS.md       # Tutorial deploy ke AWS (EC2 atau Elastic Beanstalk)
+  DOCKER.md           # Cara jalanin via Docker untuk development lokal
   tickets/            # gitignored — internal workflow
     TASK-XXX.md       # Feature tickets
     bugs/

@@ -1,0 +1,79 @@
+name: sso-whitearchive
+
+# Production compose untuk homelab (Proxmox + banyak project Docker di 1 host).
+# Beda dari docker-compose.yml (dev):
+#   - Tidak mount source code — kode di-bake ke image saat build
+#   - Join network eksternal "proxy" (Traefik) alih-alih expose port langsung
+#   - restart: unless-stopped + healthcheck
+#   - migrate (bukan migrate:fresh) saat update — data tidak boleh hilang
+#
+# Pakai: docker compose -f docker-compose.prod.yml up -d --build
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    restart: unless-stopped
+    volumes:
+      - sso_storage:/var/www/html/storage
+      - sso_public:/var/www/html/public
+    env_file: .env
+    environment:
+      DB_HOST: mysql
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - sso
+      - proxy
+
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    volumes:
+      - sso_public:/var/www/html/public:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - sso
+      - proxy
+    labels:
+      # Traefik v2/v3 — sesuaikan Host() dan certresolver dengan setup Traefik kamu
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.sso.rule=Host(`sso.whitearchive.id`)"
+      - "traefik.http.routers.sso.entrypoints=websecure"
+      - "traefik.http.routers.sso.tls.certresolver=letsencrypt"
+      - "traefik.http.services.sso.loadbalancer.server.port=80"
+
+  mysql:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: db_sso
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - sso_mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - sso
+
+volumes:
+  sso_mysql_data:
+  sso_storage:
+  sso_public:
+
+networks:
+  sso:
+    name: whitearchive_sso_prod
+  proxy:
+    external: true
+    name: proxy

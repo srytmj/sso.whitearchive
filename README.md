@@ -19,7 +19,19 @@ Central Identity Provider untuk ekosistem whitearchive.id. User login sekali, bi
 
 ## Setup Lokal
 
-**Prasyarat**: PHP 8.2+, Composer, MySQL
+### Cara A — Docker (rekomendasi, tidak perlu install PHP/MySQL manual)
+
+```bash
+git clone <repo-url> sso.whitearchive
+cd sso.whitearchive
+make docker-fresh
+```
+
+Akses di `http://localhost:8000`. Detail lengkap: [docs/DOCKER.md](docs/DOCKER.md).
+
+### Cara B — Manual
+
+**Prasyarat**: PHP 8.4+, Composer, MySQL
 
 ```bash
 git clone <repo-url> sso.whitearchive
@@ -135,5 +147,6 @@ Lihat [docs/INTEGRATION.md](docs/INTEGRATION.md) untuk panduan lengkap OAuth2 fl
 | [docs/AI_INTEGRATION.md](docs/AI_INTEGRATION.md) | Brief integrasi untuk AI assistant |
 | [docs/DEPLOY_AZURE.md](docs/DEPLOY_AZURE.md) | Tutorial deploy ke Azure |
 | [docs/DEPLOY_AWS.md](docs/DEPLOY_AWS.md) | Tutorial deploy ke AWS |
+| [docs/DOCKER.md](docs/DOCKER.md) | Jalanin via Docker untuk development lokal |
 | [docs/TODO.md](docs/TODO.md) | Backlog informal |
 | [.claude/CLAUDE.md](.claude/CLAUDE.md) | Context untuk AI dev sessions |
