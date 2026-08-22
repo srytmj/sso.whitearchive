@@ -3,12 +3,16 @@
 namespace App\Services\Dashboard;
 
 use App\Models\OAuth\Client;
+use App\Services\AuditLogService;
 use Illuminate\Support\Collection;
 use Laravel\Passport\ClientRepository;
 
 class ApplicationService
 {
-    public function __construct(private readonly ClientRepository $clients) {}
+    public function __construct(
+        private readonly ClientRepository $clients,
+        private readonly AuditLogService $auditLog,
+    ) {}
 
     public function list(): Collection
     {
@@ -17,16 +21,22 @@ class ApplicationService
 
     public function create(array $data): Client
     {
-        return $this->clients->createAuthorizationCodeGrantClient(
+        $client = $this->clients->createAuthorizationCodeGrantClient(
             name: $data['name'],
             redirectUris: [$data['redirect_uri']],
             confidential: true,
         );
+
+        $this->auditLog->record('dashboard.application_created', "Aplikasi \"{$data['name']}\" dibuat");
+
+        return $client;
     }
 
     public function update(Client $client, array $data): void
     {
         $this->clients->update($client, $data['name'], [$data['redirect_uri']]);
+
+        $this->auditLog->record('dashboard.application_updated', "Aplikasi \"{$data['name']}\" diperbarui");
     }
 
     public function delete(Client $client): void
@@ -37,5 +47,7 @@ class ApplicationService
         }
 
         $this->clients->delete($client);
+
+        $this->auditLog->record('dashboard.application_deleted', "Aplikasi \"{$client->name}\" dihapus");
     }
 }

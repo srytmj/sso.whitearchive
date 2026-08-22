@@ -9,6 +9,19 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- Admin Settings (`/dashboard/settings`) — konfigurasi mail (Resend/SMTP) dan avatar storage (local/S3) dari dashboard, bukan hardcode `.env`
+- Email verification wajib sebelum akses `/account`, `/dashboard`, atau OAuth flow
+- Avatar upload (`/account`) — ke disk local atau S3 sesuai Settings
+- My Devices (`/account/sessions`) — lihat & logout browser/device yang login ke SSO, dengan label device
+- Audit Log (`/dashboard/audit-log`) — event keamanan & perubahan data (login, ganti password, role, invite, CRUD client, dst.)
+- Two-Factor Authentication / TOTP (`/account/two-factor`) — kompatibel Google Authenticator, Microsoft Authenticator, recovery codes
+- Theme toggle (system/light/dark) — persisted per user, satu klik ganti tema, no-FOUC via inline script
+- Multilanguage: Indonesia, English, 日本語 — switcher di My Account, `theme`/`locale` di-expose lewat `/api/user` untuk disinkronkan client app (opsional)
+- Docker Compose setup untuk development lokal (`make docker-fresh`) — PHP 8.4-FPM, Nginx, MySQL 8
+- Docker Compose production untuk homelab (`docker-compose.prod.yml`, `make docker-prod-deploy`) — siap Traefik reverse proxy, MySQL user dedicated, `migrate` (bukan fresh)
+- Dashboard: log viewer (`/dashboard/logs`) — filter by level (custom dropdown, auto-apply), search, expand stack trace
+- Health check endpoint `/up` (built-in Laravel)
+- Rate limiting menyeluruh — `/oauth/*`, `/api/user`, semua halaman guest, dan semua route authenticated (per-user), dengan limit lebih ketat untuk aksi sensitif (ganti password, kirim invite, dst.)
 - Landing page publik di `/` — menjelaskan SSO Engine dan link ke login/register
 - Dashboard superadmin — gate akses role, layout sidebar + topbar
 - Dashboard: manajemen OAuth client apps (lihat, tambah, edit, hapus client)
@@ -18,6 +31,14 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Login page context awareness — banner nama aplikasi saat datang dari OAuth flow
 - Forgot password flow via email (Resend) — link reset expired 60 menit, single-use
 - Register: field full name opsional, fallback ke username jika kosong
+
+### Changed
+- Ganti password sekarang otomatis revoke semua OAuth token aktif user (semua client app di-logout)
+- Logout SSO support `redirect_uri` — client app bisa redirect balik setelah logout (whitelisted ke domain terdaftar)
+
+### Removed
+- `resources/views/flux/` — komponen Flux UI yang tidak pernah dipakai (dilarang di `.claude/CLAUDE.md`), beserta dependency `livewire/flux`
+- `welcome.blade.php` — landing page default Laravel yang tidak pernah di-render
 
 ---
 

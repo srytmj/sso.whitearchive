@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\AuditLogService;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,6 +14,8 @@ use Illuminate\View\View;
 
 class ResetPasswordController extends Controller
 {
+    public function __construct(private readonly AuditLogService $auditLog) {}
+
     public function show(Request $request): View
     {
         return view('auth.reset-password', [
@@ -39,6 +42,8 @@ class ResetPasswordController extends Controller
         );
 
         if ($status === Password::PasswordReset) {
+            $this->auditLog->record('auth.password_reset_completed', "Password direset untuk \"{$request->input('email')}\"");
+
             return redirect()->route('login')->with('status', __($status));
         }
 

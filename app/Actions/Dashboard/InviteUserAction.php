@@ -5,11 +5,14 @@ namespace App\Actions\Dashboard;
 use App\Mail\InvitationMail;
 use App\Models\User;
 use App\Models\UserInvitation;
+use App\Services\AuditLogService;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class InviteUserAction
 {
+    public function __construct(private readonly AuditLogService $auditLog) {}
+
     public function execute(User $inviter, string $email, int $roleId): UserInvitation
     {
         $invitation = UserInvitation::create([
@@ -21,6 +24,8 @@ class InviteUserAction
         ]);
 
         Mail::to($email)->send(new InvitationMail($invitation));
+
+        $this->auditLog->record('dashboard.user_invited', "Undangan dikirim ke \"{$email}\"");
 
         return $invitation;
     }

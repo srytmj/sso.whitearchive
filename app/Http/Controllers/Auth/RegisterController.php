@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Services\AuditLogService;
 use App\Services\Auth\RegisterService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,7 +12,10 @@ use Illuminate\View\View;
 
 class RegisterController extends Controller
 {
-    public function __construct(private readonly RegisterService $registerService) {}
+    public function __construct(
+        private readonly RegisterService $registerService,
+        private readonly AuditLogService $auditLog,
+    ) {}
 
     public function show(): View
     {
@@ -28,6 +32,7 @@ class RegisterController extends Controller
         ]);
 
         $user = $this->registerService->register($validated);
+        $this->auditLog->record('auth.registered', 'Registrasi akun baru', $user);
 
         Auth::login($user);
 

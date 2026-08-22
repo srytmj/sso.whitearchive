@@ -12,7 +12,7 @@ class RegisterService
     {
         $defaultRole = Role::where('slug', 'user')->firstOrFail();
 
-        return User::create([
+        $user = User::create([
             'name' => filled($data['name'] ?? null) ? $data['name'] : $data['username'],
             'username' => $data['username'],
             'email' => $data['email'],
@@ -20,5 +20,9 @@ class RegisterService
             'role_id' => $defaultRole->id,
             'is_active' => true,
         ]);
+
+        $user->sendEmailVerificationNotification();
+
+        return $user;
     }
 }

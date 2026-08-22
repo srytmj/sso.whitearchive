@@ -10,7 +10,9 @@
         "laravel/framework": "^13.8",
         "laravel/passport": "^13.7",
         "laravel/tinker": "^3.0",
-        "livewire/flux": "*",
+        "league/flysystem-aws-s3-v3": "^3.0",
+        "pragmarx/google2fa": "^8.0",
+        "bacon/bacon-qr-code": "^3.0",
         "resend/resend-laravel": "*"
     },
     "require-dev": {

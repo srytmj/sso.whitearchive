@@ -27,7 +27,11 @@ class LoginController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $this->loginService->attempt($validated, $request->boolean('remember'));
+        $requiresTwoFactor = $this->loginService->attempt($validated, $request->boolean('remember'));
+
+        if ($requiresTwoFactor) {
+            return redirect()->route('two-factor.challenge');
+        }
 
         $request->session()->regenerate();
 

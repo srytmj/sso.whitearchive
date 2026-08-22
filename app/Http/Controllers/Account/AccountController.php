@@ -4,10 +4,15 @@ namespace App\Http\Controllers\Account;
 
 use App\Actions\Account\ChangePasswordAction;
 use App\Actions\Account\RevokeSessionAction;
+use App\Actions\Account\RevokeWebSessionAction;
+use App\Actions\Account\UpdateAvatarAction;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AuditLogService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 class AccountController extends Controller
@@ -15,6 +20,9 @@ class AccountController extends Controller
     public function __construct(
         private readonly ChangePasswordAction $changePasswordAction,
         private readonly RevokeSessionAction $revokeSessionAction,
+        private readonly RevokeWebSessionAction $revokeWebSessionAction,
+        private readonly UpdateAvatarAction $updateAvatarAction,
+        private readonly AuditLogService $auditLog,
     ) {}
 
     public function show(Request $request): View
@@ -38,7 +46,25 @@ class AccountController extends Controller
             $validated['new_password'],
         );
 
-        return back()->with('success', 'Password berhasil diperbarui.');
+        $this->revokeSessionAction->revokeAll($user);
+        $this->auditLog->record('account.password_changed', 'Password diperbarui', $user);
+
+        return back()->with('success', 'Password berhasil diperbarui. Semua session lain telah keluar.');
+    }
+
+    public function updateAvatar(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'avatar' => ['required', 'image', 'max:2048', 'mimes:jpg,jpeg,png,webp'],
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+
+        $this->updateAvatarAction->execute($user, $validated['avatar']);
+        $this->auditLog->record('account.avatar_updated', 'Avatar diperbarui', $user);
+
+        return back()->with('success', __('account.avatar_updated'));
     }
 
     public function sessions(Request $request): View
@@ -53,7 +79,16 @@ class AccountController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return view('account.sessions', compact('tokens'));
+        $devices = DB::table('sessions')
+            ->where('user_id', $user->id)
+            ->orderByDesc('last_activity')
+            ->get();
+
+        return view('account.sessions', [
+            'tokens' => $tokens,
+            'devices' => $devices,
+            'currentSessionId' => $request->session()->getId(),
+        ]);
     }
 
     public function revokeSession(Request $request, string $tokenId): RedirectResponse
@@ -62,6 +97,7 @@ class AccountController extends Controller
         $user = $request->user();
 
         $this->revokeSessionAction->execute($user, $tokenId);
+        $this->auditLog->record('account.session_revoked', 'OAuth session dicabut', $user);
 
         return back()->with('success', 'Session berhasil dicabut.');
     }
@@ -72,7 +108,55 @@ class AccountController extends Controller
         $user = $request->user();
 
         $this->revokeSessionAction->revokeAll($user);
+        $this->auditLog->record('account.session_revoked', 'Semua OAuth session dicabut', $user);
 
         return back()->with('success', 'Semua session berhasil dicabut.');
+    }
+
+    public function revokeDevice(Request $request, string $sessionId): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $this->revokeWebSessionAction->execute($user, $sessionId);
+        $this->auditLog->record('account.device_revoked', 'Device di-logout', $user);
+
+        return back()->with('success', __('sessions.device_revoked'));
+    }
+
+    public function revokeAllDevices(Request $request): RedirectResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $this->revokeWebSessionAction->revokeAllExcept($user, $request->session()->getId());
+        $this->auditLog->record('account.device_revoked', 'Semua device lain di-logout', $user);
+
+        return back()->with('success', __('sessions.all_other_devices_revoked'));
+    }
+
+    public function updateTheme(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'theme' => ['required', 'string', 'in:system,light,dark'],
+        ]);
+
+        $request->user()->update(['theme' => $validated['theme']]);
+
+        return response()->json(['status' => 'ok']);
+    }
+
+    public function updateLocale(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'locale' => ['required', 'string', 'in:id,en,ja'],
+        ]);
+
+        /** @var User $user */
+        $user = $request->user();
+        $user->update(['locale' => $validated['locale']]);
+        $request->session()->put('locale', $validated['locale']);
+
+        return back()->with('success', __('account.locale_updated'));
     }
 }

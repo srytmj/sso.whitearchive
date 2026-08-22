@@ -1,0 +1,50 @@
+<?php
+
+return [
+    'login_title' => 'Sign In',
+    'login_intent_app' => 'Sign in to continue to :app',
+    'login_intent_default' => 'Access whitearchive.id apps from each app — you\'ll be redirected here automatically.',
+    'email_or_username' => 'Email or Username',
+    'password' => 'Password',
+    'remember_me' => 'Remember me',
+    'forgot_password' => 'Forgot password?',
+    'sign_in_button' => 'Sign In',
+    'no_account' => "Don't have an account?",
+    'register_link' => 'Register',
+
+    'register_title' => 'Create Account',
+    'register_subtitle' => 'Create your whitearchive.id account',
+    'full_name' => 'Full Name',
+    'optional' => 'optional',
+    'full_name_placeholder' => 'Leave empty to use username',
+    'username' => 'Username',
+    'username_hint' => 'Lowercase letters, numbers, and underscores only.',
+    'email' => 'Email',
+    'confirm_password' => 'Confirm Password',
+    'create_account_button' => 'Create Account',
+    'have_account' => 'Already have an account?',
+    'login_link' => 'Sign in',
+
+    'forgot_password_title' => 'Forgot Password',
+    'forgot_password_subtitle' => 'Reset your password',
+    'forgot_password_instruction' => 'Enter your email and we will send you a link to reset your password.',
+    'email_address' => 'Email Address',
+    'send_reset_link_button' => 'Send Reset Link',
+    'remember_password' => 'Remember your password?',
+
+    'reset_password_title' => 'Reset Password',
+    'reset_password_subtitle' => 'Set your new password',
+    'reset_password_button' => 'Reset Password',
+
+    'invite_title' => 'Accept Invitation',
+    'invite_subtitle' => 'Finish setting up your whitearchive.id account',
+    'invite_intro' => 'Invitation for :email as :role.',
+    'activate_account_button' => 'Activate Account',
+
+    'verify_email_title' => 'Verify Email',
+    'verify_email_subtitle' => 'One more step',
+    'verify_email_instruction' => "Your account isn't verified yet. Check your email and click the verification link to activate your account.",
+    'resend_verification_button' => 'Resend Verification Link',
+    'verification_link_sent' => 'A new verification link has been sent to your email.',
+    'email_verified' => 'Email verified successfully.',
+];

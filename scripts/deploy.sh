@@ -32,6 +32,9 @@ chmod -R 775 storage bootstrap/cache
 # Migrate fresh — drop semua table dan recreate dari awal
 php artisan migrate:fresh --force
 
+# Symlink storage/app/public -> public/storage (dibutuhkan untuk avatar upload disk lokal)
+php artisan storage:link
+
 # Generate Passport encryption keys
 php artisan passport:keys --force
 

@@ -1,0 +1,50 @@
+<?php
+
+return [
+    'login_title' => 'Masuk',
+    'login_intent_app' => 'Masuk untuk melanjutkan ke :app',
+    'login_intent_default' => 'Akses aplikasi whitearchive.id melalui masing-masing aplikasi — kamu akan diarahkan ke sini otomatis.',
+    'email_or_username' => 'Email atau Username',
+    'password' => 'Password',
+    'remember_me' => 'Ingat saya',
+    'forgot_password' => 'Lupa password?',
+    'sign_in_button' => 'Masuk',
+    'no_account' => 'Belum punya akun?',
+    'register_link' => 'Daftar',
+
+    'register_title' => 'Buat Akun',
+    'register_subtitle' => 'Buat akun whitearchive.id kamu',
+    'full_name' => 'Nama Lengkap',
+    'optional' => 'opsional',
+    'full_name_placeholder' => 'Kosongkan untuk pakai username',
+    'username' => 'Username',
+    'username_hint' => 'Huruf kecil, angka, dan underscore saja.',
+    'email' => 'Email',
+    'confirm_password' => 'Konfirmasi Password',
+    'create_account_button' => 'Buat Akun',
+    'have_account' => 'Sudah punya akun?',
+    'login_link' => 'Masuk',
+
+    'forgot_password_title' => 'Lupa Password',
+    'forgot_password_subtitle' => 'Reset password kamu',
+    'forgot_password_instruction' => 'Masukkan email kamu dan kami akan mengirimkan link untuk reset password.',
+    'email_address' => 'Alamat Email',
+    'send_reset_link_button' => 'Kirim Link Reset',
+    'remember_password' => 'Ingat password kamu?',
+
+    'reset_password_title' => 'Reset Password',
+    'reset_password_subtitle' => 'Atur password baru kamu',
+    'reset_password_button' => 'Reset Password',
+
+    'invite_title' => 'Terima Undangan',
+    'invite_subtitle' => 'Selesaikan setup akun whitearchive.id kamu',
+    'invite_intro' => 'Undangan untuk :email sebagai :role.',
+    'activate_account_button' => 'Aktifkan Akun',
+
+    'verify_email_title' => 'Verifikasi Email',
+    'verify_email_subtitle' => 'Satu langkah lagi',
+    'verify_email_instruction' => 'Akun kamu belum terverifikasi. Cek email kamu dan klik link verifikasi untuk mengaktifkan akun.',
+    'resend_verification_button' => 'Kirim Ulang Link Verifikasi',
+    'verification_link_sent' => 'Link verifikasi baru sudah dikirim ke email kamu.',
+    'email_verified' => 'Email berhasil diverifikasi.',
+];

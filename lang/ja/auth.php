@@ -1,0 +1,50 @@
+<?php
+
+return [
+    'login_title' => 'ログイン',
+    'login_intent_app' => ':app に進むためにログインしてください',
+    'login_intent_default' => '各アプリから whitearchive.id にアクセスすると、自動的にここへリダイレクトされます。',
+    'email_or_username' => 'メールアドレスまたはユーザー名',
+    'password' => 'パスワード',
+    'remember_me' => 'ログイン状態を保持する',
+    'forgot_password' => 'パスワードをお忘れですか？',
+    'sign_in_button' => 'ログイン',
+    'no_account' => 'アカウントをお持ちでないですか？',
+    'register_link' => '新規登録',
+
+    'register_title' => 'アカウント作成',
+    'register_subtitle' => 'whitearchive.id アカウントを作成',
+    'full_name' => '氏名',
+    'optional' => '任意',
+    'full_name_placeholder' => '空欄の場合はユーザー名を使用',
+    'username' => 'ユーザー名',
+    'username_hint' => '小文字、数字、アンダースコアのみ使用できます。',
+    'email' => 'メールアドレス',
+    'confirm_password' => 'パスワード（確認）',
+    'create_account_button' => 'アカウント作成',
+    'have_account' => 'すでにアカウントをお持ちですか？',
+    'login_link' => 'ログイン',
+
+    'forgot_password_title' => 'パスワードをお忘れですか',
+    'forgot_password_subtitle' => 'パスワードをリセット',
+    'forgot_password_instruction' => 'メールアドレスを入力すると、パスワードリセット用のリンクをお送りします。',
+    'email_address' => 'メールアドレス',
+    'send_reset_link_button' => 'リセットリンクを送信',
+    'remember_password' => 'パスワードを思い出しましたか？',
+
+    'reset_password_title' => 'パスワードリセット',
+    'reset_password_subtitle' => '新しいパスワードを設定',
+    'reset_password_button' => 'パスワードをリセット',
+
+    'invite_title' => '招待を受ける',
+    'invite_subtitle' => 'whitearchive.id アカウントの設定を完了してください',
+    'invite_intro' => ':email 様への招待（ロール：:role）。',
+    'activate_account_button' => 'アカウントを有効化',
+
+    'verify_email_title' => 'メール確認',
+    'verify_email_subtitle' => 'あと一歩です',
+    'verify_email_instruction' => 'アカウントはまだ確認されていません。メールを確認し、確認リンクをクリックしてアカウントを有効化してください。',
+    'resend_verification_button' => '確認リンクを再送信',
+    'verification_link_sent' => '新しい確認リンクをメールに送信しました。',
+    'email_verified' => 'メールを確認しました。',
+];

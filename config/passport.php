@@ -16,8 +16,10 @@ return [
     'guard' => 'web',
 
     'middleware' => [
+        'throttle:oauth',
         \App\Http\Middleware\EnforcePkce::class,
         \App\Http\Middleware\CheckWebUserActive::class,
+        \App\Http\Middleware\CheckWebUserVerified::class,
     ],
 
     /*

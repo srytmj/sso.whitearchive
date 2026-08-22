@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\UserInvitation;
+use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -12,6 +13,8 @@ use Illuminate\View\View;
 
 class InviteController extends Controller
 {
+    public function __construct(private readonly AuditLogService $auditLog) {}
+
     public function show(Request $request): View|RedirectResponse
     {
         $invitation = $this->resolveInvitation($request->query('token', ''));
@@ -44,9 +47,11 @@ class InviteController extends Controller
             'password' => $validated['password'],
             'role_id' => $invitation->role_id,
             'is_active' => true,
+            'email_verified_at' => now(),
         ]);
 
         $invitation->update(['used_at' => now()]);
+        $this->auditLog->record('dashboard.invite_accepted', 'Undangan diterima, akun dibuat', $user);
 
         Auth::login($user);
         $request->session()->regenerate();

@@ -19,6 +19,7 @@ class AdminUserSeeder extends Seeder
                 'password' => env('ADMIN_PASSWORD', 'admin'),
                 'role_id' => $adminRole->id,
                 'is_active' => true,
+                'email_verified_at' => now(),
             ]
         );
     }

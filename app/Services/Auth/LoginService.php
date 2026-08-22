@@ -3,15 +3,21 @@
 namespace App\Services\Auth;
 
 use App\Models\User;
+use App\Services\AuditLogService;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request as RequestFacade;
 use Illuminate\Validation\ValidationException;
 
 class LoginService
 {
+    public function __construct(private readonly AuditLogService $auditLog) {}
+
     /**
+     * @return bool true kalau butuh lanjut ke two-factor challenge (belum full login)
+     *
      * @throws ValidationException
      */
-    public function attempt(array $credentials, bool $remember = false): void
+    public function attempt(array $credentials, bool $remember = false): bool
     {
         $login = $credentials['email'];
 
@@ -19,6 +25,8 @@ class LoginService
         $field = filter_var($login, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
         if (! Auth::attempt([$field => $login, 'password' => $credentials['password']], $remember)) {
+            $this->auditLog->record('auth.login_failed', "Login gagal untuk \"{$login}\"");
+
             throw ValidationException::withMessages([
                 'email' => [__('auth.failed')],
             ]);
@@ -29,9 +37,23 @@ class LoginService
 
         if (! $user->is_active) {
             Auth::logout();
+            $this->auditLog->record('auth.login_failed', 'Login ditolak — akun tidak aktif', $user);
+
             throw ValidationException::withMessages([
                 'email' => ['Akun Anda tidak aktif.'],
             ]);
         }
+
+        if ($user->hasTwoFactorEnabled()) {
+            Auth::logout();
+            RequestFacade::session()->put('mfa_pending_user_id', $user->id);
+            RequestFacade::session()->put('mfa_remember', $remember);
+
+            return true;
+        }
+
+        $this->auditLog->record('auth.login', 'Login berhasil', $user);
+
+        return false;
     }
 }

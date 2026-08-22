@@ -357,9 +357,13 @@ Auth::user()->username  // Username unik
 Auth::user()->email
 Auth::user()->avatar    // URL atau null
 Auth::user()->role      // "user" atau "superadmin"
+Auth::user()->theme     // "system" | "light" | "dark" — preferensi theme user
+Auth::user()->locale    // "id" | "en" | "ja" — preferensi bahasa user
 ```
 
 Data di-sync setiap kali user login. Untuk update profil, user pergi ke `sso.whitearchive.id/account`.
+
+> **Theme & bahasa cross-app**: SSO cuma nyimpen dan expose preferensi ini — app kamu yang harus baca dan menerapkannya sendiri (SSO tidak bisa styling app lain). Contoh implementasi lengkap ada di [`AI_INTEGRATION.md`](AI_INTEGRATION.md) section "Theme & Bahasa".
 
 ---
 
@@ -410,6 +414,31 @@ Response 200:
 | `client_id` | Dari `.env` |
 | `client_secret` | Dari `.env` — jangan expose ke frontend |
 | `redirect_uri` | Harus sama persis dengan yang didaftarkan |
+
+---
+
+## Testing Lokal (SSO + Client App di 1 Device)
+
+Ini setup paling umum dan paling sering bikin bingung — SSO dan app kamu jalan bareng di laptop yang sama.
+
+1. **Port harus beda.** `php artisan serve` default ke port 8000. Kalau SSO sudah pakai 8000, jalankan client app di port lain:
+   ```bash
+   # Terminal 1 — SSO Engine
+   cd sso.whitearchive && php artisan serve --port=8000
+
+   # Terminal 2 — client app kamu
+   cd malas-app && php artisan serve --port=8001
+   ```
+
+2. **Redirect URI harus persis match** — termasuk port. Kalau didaftarkan `http://localhost:8001/auth/callback` tapi app kamu jalan di port 8002, akan kena `invalid_client` / redirect mismatch.
+
+3. **`APP_URL` di kedua app harus sesuai port masing-masing.** SSO: `APP_URL=http://localhost:8000`, client: `APP_URL=http://localhost:8001`.
+
+4. **Cookie session tidak akan bentrok** selama `APP_NAME` di kedua app berbeda (Laravel generate nama cookie dari `APP_NAME`, bukan dari port). Kalau kamu clone starter yang sama untuk dua app dan lupa ganti `APP_NAME`, keduanya bisa pakai cookie session yang sama persis dan saling override — pastikan `APP_NAME` unik di tiap `.env`.
+
+5. **`SESSION_DOMAIN` biarkan `null`** di kedua app (default). Browser tidak membedakan cookie berdasarkan port jika `Domain` di-set eksplisit ke `localhost` — membiarkan `null` membuat cookie ter-scope otomatis per origin (host + port + scheme).
+
+6. Setelah keduanya jalan, akses client app di `http://localhost:8001` → klik login → harus redirect ke `http://localhost:8000/login` (SSO), bukan error koneksi atau blank page.
 
 ---
 

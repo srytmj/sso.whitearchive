@@ -5,13 +5,17 @@ namespace App\Http\Controllers\Auth;
 use App\Actions\Auth\RevokeTokenAction;
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Services\AuditLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class LogoutController extends Controller
 {
-    public function __construct(private readonly RevokeTokenAction $revokeTokenAction) {}
+    public function __construct(
+        private readonly RevokeTokenAction $revokeTokenAction,
+        private readonly AuditLogService $auditLog,
+    ) {}
 
     public function destroy(Request $request): RedirectResponse
     {
@@ -20,6 +24,7 @@ class LogoutController extends Controller
 
         if ($user) {
             $this->revokeTokenAction->execute($user);
+            $this->auditLog->record('auth.logout', 'Logout', $user);
         }
 
         Auth::logout();

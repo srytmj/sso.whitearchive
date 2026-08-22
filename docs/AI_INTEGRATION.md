@@ -260,9 +260,48 @@ Auth::user()->username
 Auth::user()->email
 Auth::user()->avatar    // URL avatar atau null
 Auth::user()->role      // "user" atau "superadmin"
+Auth::user()->theme     // "system" | "light" | "dark"
+Auth::user()->locale    // "id" | "en" | "ja"
 ```
 
 Data di-sync setiap kali user login. Untuk update profil, user harus ke `sso.whitearchive.id/account`.
+
+---
+
+## Theme & Bahasa (Opsional, Cross-App)
+
+SSO menyimpan preferensi `theme` dan `locale` per user dan mengexpose-nya lewat `/api/user`. **SSO tidak bisa memaksa styling atau bahasa di app kamu** — itu domain terpisah. Yang SSO sediakan cuma sumber kebenaran (single source of truth) untuk preferensi user; app kamu yang menerapkannya sendiri.
+
+Kalau mau ikutan sinkron dengan preferensi yang user set di SSO:
+
+### Theme
+
+```php
+// Simpan theme dari SSO API response ke session/DB saat callback()
+session(['theme' => $profile['theme']]);
+```
+
+Terapkan di layout kamu pakai strategi yang sama dengan SSO — dark mode berbasis class `.dark` di `<html>`, di-set lewat inline script sebelum CSS load (hindari FOUC):
+
+```html
+<script>
+    var stored = localStorage.getItem('theme') || '{{ session('theme', 'system') }}';
+    var isDark = stored === 'dark' || (stored === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.classList.toggle('dark', isDark);
+</script>
+```
+
+### Bahasa
+
+Laravel punya i18n bawaan (`__()`, file `lang/{locale}/*.php`). Baca `locale` dari SSO dan set via middleware:
+
+```php
+App::setLocale($profile['locale'] ?? 'id');
+```
+
+Kalau app kamu bukan Laravel, terapkan pola yang setara di framework kamu — intinya baca `theme`/`locale` dari `/api/user`, simpan lokal (session/DB), lalu terapkan di render.
+
+> Sinkron ini best-effort, bukan realtime. Kalau user ganti bahasa di SSO setelah sesi login berjalan, app kamu baru dapat nilai baru di login berikutnya (kecuali kamu fetch ulang `/api/user` secara berkala).
 
 ---
 
@@ -280,6 +319,17 @@ Data di-sync setiap kali user login. Untuk update profil, user harus ke `sso.whi
 
 ---
 
+## Testing Lokal (SSO + Client App di 1 Device)
+
+- SSO dan client app **wajib port berbeda** (`php artisan serve --port=8000` untuk SSO, `--port=8001` untuk client)
+- `redirect_uri` yang didaftarkan di SSO harus persis sama termasuk port
+- `APP_URL` di masing-masing `.env` harus sesuai port masing-masing
+- `APP_NAME` di client app harus berbeda dari SSO — nama cookie session Laravel diturunkan dari `APP_NAME`, jika sama persis kedua app bisa saling override session cookie
+- `SESSION_DOMAIN` biarkan `null` di kedua app (default) — jangan di-set eksplisit ke `localhost`
+- Kalau app kamu jalan di **Docker container terpisah** dari SSO, `localhost` tidak bisa dipakai untuk request server-to-server (token exchange, fetch profil) — container tidak saling kenal lewat `localhost`. Split config jadi `base_url` (untuk redirect browser, tetap `localhost`) dan `internal_url` (untuk HTTP call server-to-server, pakai `host.docker.internal`). Detail lengkap + contoh kode: [`DOCKER.md`](DOCKER.md)
+
+---
+
 ## Error Umum
 
 | Error | Penyebab | Fix |
@@ -291,6 +341,7 @@ Data di-sync setiap kali user login. Untuk update profil, user harus ke `sso.whi
 | Token expired (401) | Access token > 60 menit | Implementasi refresh token flow |
 | Auto-login setelah logout | SSO session tidak dihancurkan | Pastikan logout redirect ke `/logout?redirect_uri=...` bukan hanya clear session lokal |
 | GET method not allowed (logout) | Client punya route logout POST-only tapi di-hit via GET redirect | Tambah `Route::get('/auth/logout', ...)` di client |
+| Tidak bisa integrasi di 1 device (local) | Port bentrok, `redirect_uri` tidak match port, atau `APP_NAME` sama di kedua app (cookie collision) | Lihat section "Testing Lokal" di atas — pastikan port, `redirect_uri`, dan `APP_NAME` berbeda |
 
 ---
 
