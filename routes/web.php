@@ -17,11 +17,17 @@ use App\Http\Controllers\Dashboard\LogController;
 use App\Http\Controllers\Dashboard\SessionController;
 use App\Http\Controllers\Dashboard\SettingsController;
 use App\Http\Controllers\Dashboard\UserManagementController;
+use App\Http\Controllers\HealthController;
 use App\Http\Controllers\HomeController;
 use Illuminate\Support\Facades\Route;
 
 // Public — always accessible, navbar changes based on auth state
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Health check buat monitoring eksternal (landing page whitearchive) — publik, tanpa
+// auth, query DB minimal (SELECT 1) supaya responsnya cepat. Beda dari /up bawaan
+// Laravel: endpoint ini bentuk JSON-nya khusus buat dikonsumsi dashboard monitoring.
+Route::get('/health', [HealthController::class, 'check'])->name('health')->middleware('throttle:60,1');
 
 // Guest-only
 Route::middleware(['guest', 'throttle:60,1'])->group(function () {

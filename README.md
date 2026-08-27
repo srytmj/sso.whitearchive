@@ -169,7 +169,8 @@ docs/
 | `GET /dashboard/settings` | Konfigurasi Mail & Avatar Storage (superadmin) |
 | `GET /dashboard/audit-log` | Log event keamanan & perubahan data (superadmin) |
 | `GET /dashboard/logs` | Log aplikasi/error mentah (superadmin) |
-| `GET /up` | Health check |
+| `GET /up` | Health check bawaan Laravel (liveness murni, HTML) |
+| `GET /health` | Health check buat monitoring eksternal (landing page whitearchive) — JSON, cek koneksi DB |
 
 ---
 
@@ -185,6 +186,7 @@ Lihat [docs/INTEGRATION.md](docs/INTEGRATION.md) untuk panduan lengkap OAuth2 fl
 |------|-----|
 | [docs/PRD.md](docs/PRD.md) | Product requirements & user stories |
 | [docs/SRS.md](docs/SRS.md) | Tech spec, DB schema, API contract |
+| [docs/API.md](docs/API.md) | Referensi endpoint HTTP — health check, OAuth2, `/api/user`, rate limit |
 | [docs/INTEGRATION.md](docs/INTEGRATION.md) | Panduan integrasi untuk developer (manual) |
 | [docs/AI_INTEGRATION.md](docs/AI_INTEGRATION.md) | Brief integrasi untuk AI assistant |
 | [docs/DEPLOY_AZURE.md](docs/DEPLOY_AZURE.md) | Deploy manual ke Azure VM (tanpa Docker) |
