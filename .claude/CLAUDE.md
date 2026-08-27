@@ -103,9 +103,11 @@ Request → Controller → Service/Action → Model → Response
 
 ### UI Constraints
 
-- Styling menggunakan **Tailwind CSS** utility classes — tidak ada inline styles.
-- Interaktivitas ringan (dropdown, toggle, modal) menggunakan **Alpine.js**.
-- Tidak ada React, Vue, Flux UI, atau framework JS/component library lain.
+- Styling menggunakan **Tailwind CSS** + **daisyUI** (plugin CSS-only, `@plugin 'daisyui'` di `resources/css/app.css`) — bukan pengecualian, ini satu-satunya component library yang diizinkan karena murni class CSS di atas Tailwind, tidak butuh JS framework, kompatibel penuh dengan Blade + Alpine. Pakai komponen daisyUI (`btn`, `input`, `card`, `modal`, `dropdown`, `alert`, `badge`, `navbar`, `menu`, `avatar`, `toggle`, `tabs`, dll.) dan token warna semantiknya (`bg-base-100`, `text-base-content`, `border-base-300`, dst.) alih-alih hardcode `zinc-*`/`dark:` per elemen — token semantik otomatis ganti sesuai `data-theme` di `<html>`, tidak perlu pasangan `dark:` manual lagi untuk komponen baru.
+- Theme daisyUI didefinisikan custom di `resources/css/app.css` (`@plugin 'daisyui/theme'`, dua block: `light` dan `dark`) — jangan pakai theme bawaan daisyUI lain tanpa didiskusikan, supaya brand color (biru) konsisten.
+- Interaktivitas ringan (dropdown, toggle, modal) menggunakan **Alpine.js** — selalu tambahkan `x-transition` (atau varian durasi/opacity-nya) di elemen yang muncul/hilang (`x-show`), jangan biarkan muncul/hilang instan tanpa animasi.
+- Micro-interaction wajib terasa hidup: elemen interaktif (`button`, `a`, `[role="button"]`) otomatis dapat `transition-colors`/`transform` dari `app.css` — manfaatkan (`hover:`, `active:scale-95`, dll.), jangan override jadi instan tanpa alasan.
+- Tidak ada React, Vue, Flux UI, shadcn, MUI, atau framework JS/component library lain selain daisyUI.
 - Tidak ada CDN Tailwind di production — gunakan Vite build.
 - **Dilarang**: icon dekoratif generik yang tidak punya makna fungsional (AI slop icons).
 - Icons: gunakan SVG inline minimal atau Heroicons — hanya icon yang punya makna fungsional.
@@ -133,7 +135,7 @@ resources/views/
 - Jangan skip PKCE validation
 - Jangan override `/oauth/*` routes kecuali benar-benar diperlukan
 - Jangan pakai icon dekoratif tanpa makna fungsional (AI slop)
-- Jangan import component library UI (Flux, shadcn, MUI, dll.) — pure Tailwind
+- Jangan import component library UI selain daisyUI (Flux, shadcn, MUI, dll.) — Tailwind + daisyUI saja
 - Jangan pakai inline styles
 
 ---

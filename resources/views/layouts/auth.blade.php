@@ -8,17 +8,19 @@
     @include('partials.theme-init')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex items-center justify-center px-4 py-10">
+<body class="min-h-screen bg-base-200 flex items-center justify-center px-4 py-10">
     <div class="absolute top-4 right-4">
         @include('partials.theme-toggle')
     </div>
-    <div class="w-full max-w-md">
+    <div class="w-full max-w-md animate-slide-up">
         <div class="text-center mb-8">
-            <h1 class="text-2xl font-semibold text-zinc-900 dark:text-zinc-100">whitearchive.id</h1>
-            <p class="text-sm text-zinc-500 dark:text-zinc-400 mt-1">@yield('subtitle')</p>
+            <h1 class="text-2xl font-semibold text-base-content">whitearchive.id</h1>
+            <p class="text-sm text-base-content/60 mt-1">@yield('subtitle')</p>
         </div>
-        <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl px-6 py-8 sm:px-8 sm:py-10 shadow-sm">
-            @yield('content')
+        <div class="card bg-base-100 border border-base-300 shadow-sm">
+            <div class="card-body px-6 py-8 sm:px-8 sm:py-10">
+                @yield('content')
+            </div>
         </div>
     </div>
 </body>
