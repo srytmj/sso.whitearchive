@@ -2,7 +2,7 @@
 
 return [
     'badge' => 'OAuth2 + PKCE',
-    'tagline' => 'Centralized Identity Provider for the whitearchive.id ecosystem.',
+    'tagline' => 'Centralized Identity Provider for the whitearchive ecosystem.',
     'tagline_second_line' => 'Sign in once, access every app.',
     'open_dashboard' => 'Open Dashboard',
     'view_my_account' => 'View My Account',

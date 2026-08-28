@@ -2,7 +2,7 @@
 
 return [
     'badge' => 'OAuth2 + PKCE',
-    'tagline' => 'whitearchive.id エコシステムのための統合アイデンティティプロバイダー。',
+    'tagline' => 'whitearchive エコシステムのための統合アイデンティティプロバイダー。',
     'tagline_second_line' => '一度のログインで、すべてのアプリにアクセス。',
     'open_dashboard' => 'ダッシュボードを開く',
     'view_my_account' => 'マイアカウントを見る',

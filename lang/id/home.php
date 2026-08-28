@@ -2,7 +2,7 @@
 
 return [
     'badge' => 'OAuth2 + PKCE',
-    'tagline' => 'Identity Provider terpusat untuk ekosistem whitearchive.id.',
+    'tagline' => 'Identity Provider terpusat untuk ekosistem whitearchive.',
     'tagline_second_line' => 'Login sekali, akses semua aplikasi.',
     'open_dashboard' => 'Buka Dashboard',
     'view_my_account' => 'Lihat Akun Saya',

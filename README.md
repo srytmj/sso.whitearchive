@@ -1,9 +1,9 @@
-# SSO Engine — whitearchive.id
+# SSO Engine — whitearchive
 
-Central Identity Provider untuk ekosistem whitearchive.id. User login sekali, bisa akses semua aplikasi (Malas, Scribe, dll.) tanpa login ulang.
+Central Identity Provider untuk ekosistem whitearchive. User login sekali, bisa akses semua aplikasi (Malas, Scribe, dll.) tanpa login ulang.
 
 **Protokol**: OAuth2 Authorization Code + PKCE (RFC 6749 + RFC 7636)
-**URL produksi**: `https://sso.suryatmaja.dev` *(sementara — akan pindah ke `sso.whitearchive.id`)*
+**URL produksi**: `https://sso.suryatmaja.dev` *(sementara, domain final belum ditentukan)*
 
 ---
 
@@ -54,7 +54,7 @@ DB_PASSWORD=
 MAIL_MAILER=resend
 RESEND_API_KEY=re_xxx
 MAIL_FROM_ADDRESS=noreply@whitearchive.id
-MAIL_FROM_NAME="SSO whitearchive.id"
+MAIL_FROM_NAME="SSO whitearchive"
 ```
 
 ```bash

@@ -17,7 +17,7 @@ class InvitationMail extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Undangan bergabung ke whitearchive.id');
+        return new Envelope(subject: 'Undangan bergabung ke whitearchive');
     }
 
     public function content(): Content
